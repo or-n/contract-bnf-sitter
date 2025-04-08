@@ -19,8 +19,8 @@ pub type AST {
   Node(String, List(AST))
 }
 
-pub fn quote(s: String) -> String {
-  "\"" <> s <> "\""
+pub fn quote(text) {
+  "\"" <> text <> "\""
 }
 
 pub fn show_ast(ast) {
@@ -63,18 +63,18 @@ pub fn drop_bnf(i, bnf, grammar) {
         }
       })
     }
-    Drop(text) -> {
-      echo text
+    Drop(drop_i) -> {
+      echo drop_i
       use <- bool.guard(
-        i |> string.starts_with(text) |> bool.negate,
+        i |> string.starts_with(drop_i) |> bool.negate,
         Error(Nil),
       )
-      let i = i |> string.drop_start(text |> string.length)
-      #(i, [Node(text, [])]) |> Ok
+      let i = i |> string.drop_start(drop_i |> string.length)
+      #(i, [Node(drop_i, [])]) |> Ok
     }
-    End(text) -> {
-      echo text
-      use <- bool.guard(i != text, Error(Nil))
+    End(drop_i) -> {
+      echo drop_i
+      use <- bool.guard(i != drop_i, Error(Nil))
       #("", []) |> Ok
     }
     Seq(bnfs) ->
