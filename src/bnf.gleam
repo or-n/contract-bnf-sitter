@@ -7,7 +7,6 @@ pub type BNF(i) {
   Id(String)
   Drop(i)
   End(i)
-  // Alt(List(BNF))
   Seq(List(BNF(i)))
   Opt(BNF(i))
   Rep(BNF(i))
@@ -63,10 +62,6 @@ pub fn drop_bnf(i, bnf, grammar) {
           _ -> acc |> list.Continue
         }
       })
-      // use labeled_bnf <- result.try(r)
-      // let r = eat_rule(i, #(rule_id, labeled_bnf), grammar)
-      // use #(i, ast) <- result.try(r)
-      // #(i, [ast]) |> Ok
     }
     Drop(text) -> {
       echo text
@@ -82,14 +77,6 @@ pub fn drop_bnf(i, bnf, grammar) {
       use <- bool.guard(i != text, Error(Nil))
       #("", []) |> Ok
     }
-    // Alt(bnfs) ->
-    //   bnfs
-    //   |> list.fold_until(Error(Nil), fn(acc, other_bnf) {
-    //     case drop_bnf(i, other_bnf, grammar) {
-    //       Ok(r) -> r |> Ok |> list.Stop
-    //       _ -> acc |> list.Continue
-    //     }
-    //   })
     Seq(bnfs) ->
       bnfs
       |> list.try_fold(#(i, []), fn(acc, other_bnf) {

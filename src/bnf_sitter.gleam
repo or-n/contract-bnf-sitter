@@ -1,42 +1,6 @@
 import bnf
-import gleam/int
 import gleam/io
-import gleam/list
 import gleam/result
-
-// pub fn or(a, b) {
-//   [a, b] |> bnf.Alt
-// }
-
-// pub fn drop_alt(xs) {
-//   xs |> list.map(bnf.Drop) |> bnf.Alt
-// }
-
-// pub fn dec() {
-//   list.range(1, 9) |> list.map(int.to_string) |> drop_alt
-// }
-
-// pub fn hex() {
-//   ["a", "b", "c", "d", "e", "f"] |> drop_alt |> or(bnf.Id("dec"))
-// }
-
-// pub fn number() {
-//   [
-//     "-" |> bnf.Drop |> bnf.Opt,
-//     bnf.Id("hex"),
-//     bnf.Id("hex") |> or("0" |> bnf.Drop) |> bnf.Rep,
-//   ]
-//   |> bnf.Seq
-//   |> or("0" |> bnf.Drop)
-// }
-
-// pub fn end() {
-//   [bnf.Id("number"), "." |> bnf.End] |> bnf.Seq
-// }
-
-// pub fn grammar() {
-//   [#("end", end()), #("number", number()), #("hex", hex()), #("dec", dec())]
-// }
 
 pub fn grammar() {
   [
