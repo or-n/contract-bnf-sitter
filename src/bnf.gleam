@@ -52,8 +52,8 @@ pub fn drop_bnf(i, bnf, grammar) {
     Id(label) -> {
       let bnfs = grammar |> list.key_filter(label)
       bnfs
-      |> list.fold_until(Error(Nil), fn(acc, labeled_bnf) {
-        let #(_variant, other_bnf) = labeled_bnf
+      |> list.fold_until(Error(Nil), fn(acc, variant_bnf) {
+        let #(_variant, other_bnf) = variant_bnf
         case drop_bnf(i, other_bnf, grammar) {
           Ok(r) -> {
             let #(i, asts) = r
