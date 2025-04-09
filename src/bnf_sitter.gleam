@@ -1,4 +1,4 @@
-import bnf
+import bnf.{Id}
 import gleam/io
 import gleam/list
 import gleam/result
@@ -14,44 +14,44 @@ pub fn end(i) {
 
 pub fn grammar() {
   [
-    #("end", #("term", [bnf.Id("term"), "." |> end] |> bnf.Seq)),
-    #("term", #("wrap", ["(" |> drop, bnf.Id("terms"), ")" |> drop] |> bnf.Seq)),
+    #("end", #("term", [Id("term"), "." |> end] |> bnf.Seq)),
+    #("term", #("wrap", ["(" |> drop, Id("terms"), ")" |> drop] |> bnf.Seq)),
     #("terms", #(
       "term",
-      [bnf.Id("term"), [" " |> drop, bnf.Id("terms")] |> bnf.Seq |> bnf.Opt]
+      [Id("term"), [" " |> drop, Id("terms")] |> bnf.Seq |> bnf.Opt]
         |> bnf.Seq,
     )),
     #("term", #(
       "pair",
-      ["(" |> drop, bnf.Id("term"), ", " |> drop, bnf.Id("term"), ")" |> drop]
+      ["(" |> drop, Id("term"), ", " |> drop, Id("term"), ")" |> drop]
         |> bnf.Seq,
     )),
-    #("term", #("i", bnf.Id("i"))),
-    #("i", #("0", bnf.Id("0"))),
+    #("term", #("i", Id("i"))),
+    #("i", #("0", Id("0"))),
     #("i", #(
       "!0",
-      ["-" |> drop |> bnf.Opt, bnf.Id("f"), bnf.Id("?0f") |> bnf.Rep]
+      ["-" |> drop |> bnf.Opt, Id("f"), Id("?0f") |> bnf.Rep]
         |> bnf.Seq,
     )),
-    #("?0f", #("0", bnf.Id("0"))),
-    #("?0f", #("!0", bnf.Id("f"))),
+    #("?0f", #("0", Id("0"))),
+    #("?0f", #("!0", Id("f"))),
     #("f", #("f", "f" |> drop)),
     #("f", #("e", "e" |> drop)),
     #("f", #("d", "d" |> drop)),
     #("f", #("c", "c" |> drop)),
     #("f", #("b", "b" |> drop)),
     #("f", #("a", "a" |> drop)),
-    #("f", #("<", bnf.Id("9"))),
+    #("f", #("<", Id("9"))),
     #("9", #("9", "9" |> drop)),
     #("9", #("8", "8" |> drop)),
-    #("9", #("<", bnf.Id("7"))),
+    #("9", #("<", Id("7"))),
     #("7", #("7", "7" |> drop)),
     #("7", #("6", "6" |> drop)),
     #("7", #("5", "5" |> drop)),
     #("7", #("4", "4" |> drop)),
     #("7", #("3", "3" |> drop)),
     #("7", #("2", "2" |> drop)),
-    #("7", #("<", bnf.Id("1"))),
+    #("7", #("<", Id("1"))),
     #("1", #("1", "1" |> drop)),
     #("0", #("0", "0" |> drop)),
   ]
@@ -79,8 +79,8 @@ pub fn main() {
     })
   case r {
     Ok(text) -> text
-    Error(tokens) -> {
-      let str = tokens |> indent.list_to_string
+    Error(i) -> {
+      let str = i |> indent.list_to_string
       "error: " <> str
     }
   }
