@@ -13,9 +13,16 @@ pub fn end(i) {
   i |> indent.Text |> list.wrap |> bnf.End
 }
 
+fn ord(char_str) {
+  char_str
+  |> string.to_utf_codepoints
+  |> list.first
+  |> result.map(string.utf_codepoint_to_int)
+  |> result.unwrap(0)
+}
+
 pub fn alphabet() {
-  // 'a' to 'z'
-  list.range(97, 122)
+  list.range("a" |> ord, "z" |> ord)
   |> list.try_map(string.utf_codepoint)
   |> result.unwrap([])
   |> list.map(fn(c) {
@@ -40,9 +47,9 @@ pub fn grammar() {
     )),
     #("term", #("i", Id("i"))),
     #("term", #("id", Id("id"))),
-    #("id", #("alpha", [Id("alpha"), Id("alphanum") |> bnf.Rep] |> bnf.Seq)),
-    #("alphanum", #("alpha", Id("alpha"))),
-    #("alphanum", #("num", Id("i"))),
+    #("id", #("alpha", [Id("alpha"), Id("?alphai") |> bnf.Rep] |> bnf.Seq)),
+    #("?alphai", #("alpha", Id("alpha"))),
+    #("?alphai", #("i", Id("i"))),
     #("i", #("!0", ["-" |> drop |> bnf.Opt, Id("u")] |> bnf.Seq)),
     #("i", #("0", Id("0"))),
     #("u", #("dec", [Id("9"), Id("?09") |> bnf.Rep] |> bnf.Seq)),
