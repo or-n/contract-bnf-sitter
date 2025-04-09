@@ -18,10 +18,8 @@ pub fn char_range(name, start, end) {
   list.range(start |> util.ord, end |> util.ord)
   |> list.try_map(string.utf_codepoint)
   |> result.unwrap([])
-  |> list.map(fn(c) {
-    let s = c |> list.wrap |> string.from_utf_codepoints
-    #(name, #(s, s |> drop))
-  })
+  |> list.map(fn(c) { c |> list.wrap |> string.from_utf_codepoints })
+  |> list.map(fn(s) { #(name, #(s, drop(s))) })
 }
 
 pub fn grammar() {
@@ -67,7 +65,7 @@ pub fn default_ctx() {
 pub fn indent_ctx() {
   bnf.Context(
     drop: indent.drop_token_list,
-    to_string: indent.list_to_string,
+    to_string: indent.token_list_to_string,
     empty: [],
   )
 }
@@ -85,19 +83,19 @@ fn examples() {
 pub fn main() {
   let r =
     examples()
-    |> list.key_find("e")
-    |> result.unwrap(".")
+    |> list.key_find("x")
+    |> result.unwrap("")
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx())
     |> result.map(fn(pair) {
       let #(i, ast) = pair
-      let i_str = i |> indent.list_to_string |> util.quote
+      let i_str = i |> indent.token_list_to_string |> util.quote
       io.println("i: " <> i_str)
       bnf.show_ast(ast)
     })
   case r {
     Ok(text) -> text
-    Error(i) -> i |> indent.list_to_string
+    Error(i) -> i |> indent.token_list_to_string |> util.quote
   }
   |> io.println
 }

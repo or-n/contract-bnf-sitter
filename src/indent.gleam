@@ -12,7 +12,7 @@ pub type Token {
   Text(String)
 }
 
-pub fn to_string(token) {
+pub fn token_to_string(token) {
   case token {
     Text(text) -> text
     Indent -> "<Indent>"
@@ -20,8 +20,8 @@ pub fn to_string(token) {
   }
 }
 
-pub fn list_to_string(tokens) {
-  tokens |> list.map(to_string) |> string.concat
+pub fn token_list_to_string(tokens) {
+  tokens |> list.map(token_to_string) |> string.concat
 }
 
 pub fn drop_token(tokens, token) {
