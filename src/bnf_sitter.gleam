@@ -67,14 +67,19 @@ pub fn grammar() {
   |> list.flatten
 }
 
+pub fn default_ctx() {
+  bnf.Context(drop: indent.drop_string, to_string: fn(x) { x }, empty: "")
+}
+
+pub fn indent_ctx() {
+  bnf.Context(
+    drop: indent.drop_token_list,
+    to_string: indent.list_to_string,
+    empty: [],
+  )
+}
+
 pub fn main() {
-  // let ctx = bnf.Context(drop: indent.drop_string, to_string: fn(x) { x }, empty: "")
-  let indent_ctx =
-    bnf.Context(
-      drop: indent.drop_token_list,
-      to_string: indent.list_to_string,
-      empty: [],
-    )
   let r =
     // "\t(0)\n\t\t."
     // "(-0x2f01, (2137, 0))."
@@ -82,20 +87,16 @@ pub fn main() {
     // "0."
     "(_a21 0xa)."
     |> indent.tokens
-    |> bnf.eat_rules(grammar(), indent_ctx)
+    |> bnf.eat_rules(grammar(), indent_ctx())
     |> result.map(fn(pair) {
       let #(i, ast) = pair
-      let str = i |> indent.list_to_string |> bnf.quote
-      let str = "i: " <> str
-      str |> io.println
-      ast |> bnf.show_ast
+      let i_str = i |> indent.list_to_string |> bnf.quote
+      io.println("i: " <> i_str)
+      bnf.show_ast(ast)
     })
   case r {
     Ok(text) -> text
-    Error(i) -> {
-      let str = i |> indent.list_to_string
-      "error: " <> str
-    }
+    Error(i) -> i |> indent.list_to_string
   }
   |> io.println
 }
