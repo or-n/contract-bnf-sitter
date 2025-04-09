@@ -58,10 +58,10 @@ pub fn grammar() {
 }
 
 pub fn main() {
-  // let ctx = bnf.Context(drop_fn: drop_string, to_string: fn(x) { x }, empty: "")
+  // let ctx = bnf.Context(drop: indent.drop_string, to_string: fn(x) { x }, empty: "")
   let indent_ctx =
     bnf.Context(
-      drop_fn: indent.drop_token_list,
+      drop: indent.drop_token_list,
       to_string: indent.list_to_string,
       empty: [],
     )
