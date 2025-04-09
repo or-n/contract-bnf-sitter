@@ -72,13 +72,21 @@ pub fn indent_ctx() {
   )
 }
 
+fn examples() {
+  [
+    #("a", "\t(0)\n\t\t."),
+    #("b", "(-0x2f01, (2137, 0))."),
+    #("c", "(0 1 (2, 1))."),
+    #("d", "0."),
+    #("e", "(_a21 0xa)."),
+  ]
+}
+
 pub fn main() {
   let r =
-    // "\t(0)\n\t\t."
-    // "(-0x2f01, (2137, 0))."
-    // "(0 1 (2, 1))."
-    // "0."
-    "(_a21 0xa)."
+    examples()
+    |> list.key_find("e")
+    |> result.unwrap(".")
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx())
     |> result.map(fn(pair) {
