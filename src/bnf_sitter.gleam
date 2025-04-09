@@ -33,8 +33,8 @@ pub fn char_range(name, start, end) {
 
 pub fn grammar() {
   [
-    [#("end", #("term", [Id("term"), "." |> end] |> bnf.Seq))],
     [
+      #("end", #("term", [Id("term"), "." |> end] |> bnf.Seq)),
       #("term", #("wrap", ["(" |> drop, Id("terms"), ")" |> drop] |> bnf.Seq)),
       #("terms", #(
         "term",
@@ -48,26 +48,17 @@ pub fn grammar() {
       )),
       #("term", #("i", Id("i"))),
       #("term", #("id", Id("id"))),
-    ],
-    [
       #("id", #("alpha", [Id("alpha"), Id("?alphai") |> bnf.Rep] |> bnf.Seq)),
       #("?alphai", #("alpha", Id("alpha"))),
       #("?alphai", #("i", Id("i"))),
-    ],
-    [
       #("i", #("!0", ["-" |> drop |> bnf.Opt, Id("u")] |> bnf.Seq)),
       #("i", #("0", Id("0"))),
       #("u", #("dec", [Id("9"), Id("?09") |> bnf.Rep] |> bnf.Seq)),
       #("u", #("hex", ["0x" |> drop, Id("f"), Id("?0f") |> bnf.Rep] |> bnf.Seq)),
       #("0", #("0", "0" |> drop)),
-    ],
-    [
       #("?0f", #("0", Id("0"))),
       #("?0f", #("!0", Id("f"))),
       #("f", #("<", Id("9"))),
-    ],
-    char_range("f", "a", "f"),
-    [
       #("?09", #("0", Id("0"))),
       #("?09", #("!0", Id("9"))),
       #("9", #("9", "9" |> drop)),
@@ -75,10 +66,11 @@ pub fn grammar() {
       #("9", #("<", Id("7"))),
       #("7", #("<", Id("1"))),
       #("1", #("1", "1" |> drop)),
+      #("alpha", #("_", "_" |> drop)),
     ],
+    char_range("f", "a", "f"),
     char_range("7", "2", "7"),
     char_range("alpha", "a", "z"),
-    [#("alpha", #("_", "_" |> drop))],
   ]
   |> list.flatten
 }
@@ -93,11 +85,11 @@ pub fn main() {
     )
   let r =
     // "\t(0)\n\t\t."
-    "(-0x2f01, (2137, 0))."
+    // "(-0x2f01, (2137, 0))."
     // "(0 1 (2, 1))."
     // "(0)."
     // "(0xa)."
-    // "(_a21)."
+    "(_a21)."
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
