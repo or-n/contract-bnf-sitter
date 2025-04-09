@@ -34,18 +34,13 @@ pub fn char_range(name, start, end) {
 pub fn grammar() {
   [
     [
-      #("end", #("term", [Id("term"), "." |> end] |> Seq)),
-      #("term", #("wrap", [drop("("), Id("terms"), drop(")")] |> Seq)),
-      #("terms", #(
-        "term",
-        [Id("term"), [drop(" "), Id("terms")] |> Seq |> Opt] |> Seq,
-      )),
-      #("term", #(
-        "pair",
-        [drop("("), Id("term"), drop(", "), Id("term"), drop(")")] |> Seq,
-      )),
-      #("term", #("i", Id("i"))),
-      #("term", #("id", Id("id"))),
+      #("end", #("term", [Id("t"), end(".")] |> Seq)),
+      #("t", #("wrap", [drop("("), Id("terms"), drop(")")] |> Seq)),
+      #("terms", #("term", [Id("t"), Id("app"), Id("app") |> Rep] |> Seq)),
+      #("app", #("app", [drop(" "), Id("t")] |> Seq)),
+      #("t", #(",", [drop("("), Id("t"), drop(", "), Id("t"), drop(")")] |> Seq)),
+      #("t", #("i", Id("i"))),
+      #("t", #("id", Id("id"))),
       #("id", #("alpha", [Id("alpha"), Id("?alphai") |> Rep] |> Seq)),
       #("?alphai", #("alpha", Id("alpha"))),
       #("?alphai", #("i", Id("i"))),
@@ -53,15 +48,15 @@ pub fn grammar() {
       #("i", #("0", Id("0"))),
       #("u", #("9", [Id("9"), Id("?09") |> Rep] |> Seq)),
       #("u", #("f", [drop("0x"), Id("f"), Id("?0f") |> Rep] |> Seq)),
-      #("0", #("0", drop("0"))),
       #("?0f", #("0", Id("0"))),
       #("?0f", #("!0", Id("f"))),
-      #("f", #("<", Id("9"))),
       #("?09", #("0", Id("0"))),
       #("?09", #("!0", Id("9"))),
+      #("f", #("<", Id("9"))),
       #("9", #("<", Id("7"))),
       #("7", #("<", Id("1"))),
       #("1", #("1", drop("1"))),
+      #("0", #("0", drop("0"))),
       #("alpha", #("_", drop("_"))),
     ],
     char_range("f", "a", "f"),
@@ -82,11 +77,10 @@ pub fn main() {
     )
   let r =
     // "\t(0)\n\t\t."
-    "(-0x2f01, (2137, 0))."
+    // "(-0x2f01, (2137, 0))."
     // "(0 1 (2, 1))."
-    // "(0)."
-    // "(0xa)."
-    // "(_a21)."
+    // "0."
+    "(_a21 0xa)."
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
