@@ -36,11 +36,10 @@ pub type Context(a) {
 
 pub fn eat_rules(i, grammar, ctx) {
   grammar
-  |> list.fold_until(Error(i), fn(acc, rule) {
-    case eat_rule(i, rule, grammar, ctx) {
-      Ok(ok) -> ok |> Ok |> list.Stop
-      _ -> acc |> list.Continue
-    }
+  |> list.fold_until(Error(Nil), fn(acc, rule) {
+    let r = eat_rule(i, rule, grammar, ctx)
+    use <- bool.guard(r |> result.is_ok, r |> list.Stop)
+    acc |> list.Continue
   })
 }
 

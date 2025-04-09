@@ -79,11 +79,13 @@ const examples = [
 ]
 
 pub fn main() {
-  let r =
+  let i =
     examples
     |> list.key_find("e")
     |> result.unwrap("")
     |> indent.tokens
+  let r =
+    i
     |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
       let #(i, ast) = pair
@@ -93,7 +95,7 @@ pub fn main() {
     })
   case r {
     Ok(text) -> text
-    Error(i) -> i |> indent.token_list_to_string |> util.quote
+    _ -> i |> indent.token_list_to_string |> util.quote
   }
   |> io.println
 }
