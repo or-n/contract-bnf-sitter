@@ -1,4 +1,4 @@
-import bnf.{Id}
+import bnf.{Id, Opt, Rep, Seq}
 import gleam/io
 import gleam/list
 import gleam/result
@@ -34,41 +34,38 @@ pub fn char_range(name, start, end) {
 pub fn grammar() {
   [
     [
-      #("end", #("term", [Id("term"), "." |> end] |> bnf.Seq)),
-      #("term", #("wrap", ["(" |> drop, Id("terms"), ")" |> drop] |> bnf.Seq)),
+      #("end", #("term", [Id("term"), "." |> end] |> Seq)),
+      #("term", #("wrap", [drop("("), Id("terms"), drop(")")] |> Seq)),
       #("terms", #(
         "term",
-        [Id("term"), [" " |> drop, Id("terms")] |> bnf.Seq |> bnf.Opt]
-          |> bnf.Seq,
+        [Id("term"), [drop(" "), Id("terms")] |> Seq |> Opt] |> Seq,
       )),
       #("term", #(
         "pair",
-        ["(" |> drop, Id("term"), ", " |> drop, Id("term"), ")" |> drop]
-          |> bnf.Seq,
+        [drop("("), Id("term"), drop(", "), Id("term"), drop(")")] |> Seq,
       )),
       #("term", #("i", Id("i"))),
       #("term", #("id", Id("id"))),
-      #("id", #("alpha", [Id("alpha"), Id("?alphai") |> bnf.Rep] |> bnf.Seq)),
+      #("id", #("alpha", [Id("alpha"), Id("?alphai") |> Rep] |> Seq)),
       #("?alphai", #("alpha", Id("alpha"))),
       #("?alphai", #("i", Id("i"))),
-      #("i", #("!0", ["-" |> drop |> bnf.Opt, Id("u")] |> bnf.Seq)),
+      #("i", #("!0", [drop("-") |> Opt, Id("u")] |> Seq)),
       #("i", #("0", Id("0"))),
-      #("u", #("dec", [Id("9"), Id("?09") |> bnf.Rep] |> bnf.Seq)),
-      #("u", #("hex", ["0x" |> drop, Id("f"), Id("?0f") |> bnf.Rep] |> bnf.Seq)),
-      #("0", #("0", "0" |> drop)),
+      #("u", #("9", [Id("9"), Id("?09") |> Rep] |> Seq)),
+      #("u", #("f", [drop("0x"), Id("f"), Id("?0f") |> Rep] |> Seq)),
+      #("0", #("0", drop("0"))),
       #("?0f", #("0", Id("0"))),
       #("?0f", #("!0", Id("f"))),
       #("f", #("<", Id("9"))),
       #("?09", #("0", Id("0"))),
       #("?09", #("!0", Id("9"))),
-      #("9", #("9", "9" |> drop)),
-      #("9", #("8", "8" |> drop)),
       #("9", #("<", Id("7"))),
       #("7", #("<", Id("1"))),
-      #("1", #("1", "1" |> drop)),
-      #("alpha", #("_", "_" |> drop)),
+      #("1", #("1", drop("1"))),
+      #("alpha", #("_", drop("_"))),
     ],
     char_range("f", "a", "f"),
+    char_range("9", "8", "9"),
     char_range("7", "2", "7"),
     char_range("alpha", "a", "z"),
   ]
@@ -85,11 +82,11 @@ pub fn main() {
     )
   let r =
     // "\t(0)\n\t\t."
-    // "(-0x2f01, (2137, 0))."
+    "(-0x2f01, (2137, 0))."
     // "(0 1 (2, 1))."
     // "(0)."
     // "(0xa)."
-    "(_a21)."
+    // "(_a21)."
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
