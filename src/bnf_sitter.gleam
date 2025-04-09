@@ -4,6 +4,7 @@ import gleam/list
 import gleam/result
 import gleam/string
 import indent
+import util
 
 pub fn drop(i) {
   i |> indent.Text |> list.wrap |> bnf.Drop
@@ -13,16 +14,8 @@ pub fn end(i) {
   i |> indent.Text |> list.wrap |> bnf.End
 }
 
-fn ord(char_str) {
-  char_str
-  |> string.to_utf_codepoints
-  |> list.first
-  |> result.map(string.utf_codepoint_to_int)
-  |> result.unwrap(0)
-}
-
 pub fn char_range(name, start, end) {
-  list.range(start |> ord, end |> ord)
+  list.range(start |> util.ord, end |> util.ord)
   |> list.try_map(string.utf_codepoint)
   |> result.unwrap([])
   |> list.map(fn(c) {
@@ -68,7 +61,7 @@ pub fn grammar() {
 }
 
 pub fn default_ctx() {
-  bnf.Context(drop: indent.drop_string, to_string: fn(x) { x }, empty: "")
+  bnf.Context(drop: util.drop_string, to_string: fn(x) { x }, empty: "")
 }
 
 pub fn indent_ctx() {
@@ -90,7 +83,7 @@ pub fn main() {
     |> bnf.eat_rules(grammar(), indent_ctx())
     |> result.map(fn(pair) {
       let #(i, ast) = pair
-      let i_str = i |> indent.list_to_string |> bnf.quote
+      let i_str = i |> indent.list_to_string |> util.quote
       io.println("i: " <> i_str)
       bnf.show_ast(ast)
     })

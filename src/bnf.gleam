@@ -2,6 +2,7 @@ import gleam/bool
 import gleam/list
 import gleam/result
 import gleam/string
+import util
 
 pub type BNF(i) {
   Id(String)
@@ -19,14 +20,10 @@ pub type AST {
   Node(String, List(AST))
 }
 
-pub fn quote(text) {
-  "\"" <> text <> "\""
-}
-
 pub fn show_ast(ast) {
   let Node(label, children) = ast
   let label_str = label
-  use <- bool.guard(children |> list.is_empty, label_str |> quote)
+  use <- bool.guard(children |> list.is_empty, label_str |> util.quote)
   let children_str = children |> list.map(show_ast) |> string.join(", ")
   label_str <> "(" <> children_str <> ")"
 }

@@ -4,6 +4,7 @@ import gleam/list
 import gleam/order
 import gleam/result
 import gleam/string
+import util
 
 pub type Token {
   Indent
@@ -23,18 +24,12 @@ pub fn list_to_string(tokens) {
   tokens |> list.map(to_string) |> string.concat
 }
 
-pub fn drop_string(i, to_drop) {
-  let r = i |> string.starts_with(to_drop) |> bool.negate
-  use <- bool.guard(r, Error(Nil))
-  i |> string.drop_start(to_drop |> string.length) |> Ok
-}
-
 pub fn drop_token(tokens, token) {
   use first <- result.try(tokens |> list.first)
   let rest = tokens |> list.drop(1)
   case token, first {
     Text(drop_text), Text(text) -> {
-      use i <- result.try(text |> drop_string(drop_text))
+      use i <- result.try(text |> util.drop_string(drop_text))
       use <- bool.guard(i |> string.is_empty, Ok(rest))
       Ok(rest |> list.prepend(i |> Text))
     }
@@ -49,19 +44,12 @@ pub fn drop_token_list(i, to_drop) {
   to_drop |> list.try_fold(i, drop_token)
 }
 
-pub fn iterate(x, f) {
-  case f(x) {
-    Ok(x) -> iterate(x, f)
-    _ -> x
-  }
-}
-
 pub fn tokens(i) {
   let #(_, lines) =
     i
     |> string.split("\n")
     |> list.map(fn(line) {
-      iterate(#(line, 0), fn(pair) {
+      util.iterate(#(line, 0), fn(pair) {
         let #(i, tab_count) = pair
         case i {
           "\t" <> i -> Ok(#(i, tab_count + 1))
