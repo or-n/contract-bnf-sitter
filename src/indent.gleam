@@ -35,6 +35,7 @@ pub fn drop_token(tokens, token) {
   case token, first {
     Text(drop_text), Text(text) -> {
       use i <- result.try(text |> drop_string(drop_text))
+      use <- bool.guard(i |> string.is_empty, Ok(rest))
       Ok(rest |> list.prepend(i |> Text))
     }
     _, _ -> {
@@ -55,10 +56,6 @@ pub fn iterate(x, f) {
   }
 }
 
-pub fn drop_last(xs) {
-  xs |> list.reverse |> list.drop(1) |> list.reverse
-}
-
 pub fn tokens(i) {
   let #(_, lines) =
     i
@@ -76,14 +73,14 @@ pub fn tokens(i) {
     |> list.map_fold(0, fn(before, pair) {
       let #(line, after) = pair
       let d = after - before
-      let tokens =
-        case d |> int.compare(0) {
-          order.Lt -> Deindent |> list.repeat(d |> int.absolute_value)
-          order.Eq -> []
-          order.Gt -> Indent |> list.repeat(d)
-        }
-        |> list.append([Text(line)])
+      let tokens = case d |> int.compare(0) {
+        order.Lt -> Deindent |> list.repeat(d |> int.absolute_value)
+        order.Eq -> []
+        order.Gt -> Indent |> list.repeat(d)
+      }
+      use <- bool.guard(line |> string.is_empty, #(after, tokens))
+      let tokens = tokens |> list.append([Text(line)])
       #(after, tokens)
     })
-  lines |> list.flatten |> drop_last
+  lines |> list.flatten
 }

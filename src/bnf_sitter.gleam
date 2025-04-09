@@ -14,7 +14,7 @@ pub fn end(i) {
 
 pub fn grammar() {
   [
-    #("end", #("term", [Id("term"), "." |> end] |> bnf.Seq)),
+    #("end", #("terms", [Id("term"), "." |> end] |> bnf.Seq)),
     #("term", #("wrap", ["(" |> drop, Id("terms"), ")" |> drop] |> bnf.Seq)),
     #("terms", #(
       "term",
@@ -67,15 +67,17 @@ pub fn main() {
     )
   let r =
     // "\t(0)\n\t\t."
-    "(-2f01, (2137, 0))."
+    // "(-2f01, (2137, 0))."
     // "(0 1 (2, 1))."
-    // "(0)."
+    "(0)."
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
       let #(i, ast) = pair
-      echo i
-      bnf.show_ast(ast)
+      let str = i |> indent.list_to_string |> bnf.quote
+      let str = "i: " <> str
+      str |> io.println
+      ast |> bnf.show_ast
     })
   case r {
     Ok(text) -> text
