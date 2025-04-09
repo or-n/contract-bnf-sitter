@@ -67,9 +67,9 @@ pub fn main() {
     )
   let r =
     // "\t(0)\n\t\t."
-    // "(-2f01, (2137, 0))."
+    "(-2f01, (2137, 0))."
     // "(0 1 (2, 1))."
-    "(0)."
+    // "(0)."
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {

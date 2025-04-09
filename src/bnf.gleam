@@ -73,13 +73,13 @@ pub fn drop_bnf(i, bnf, grammar, ctx: Context(a)) {
       })
     }
     Drop(drop_i) -> {
-      echo drop_i
+      echo drop_i |> ctx.to_string
       use i <- result.try(i |> ctx.drop_fn(drop_i))
       let drop_i_str = drop_i |> ctx.to_string
       #(i, [Node(drop_i_str, [])]) |> Ok
     }
     End(drop_i) -> {
-      echo drop_i
+      echo drop_i |> ctx.to_string
       use i <- result.try(i |> ctx.drop_fn(drop_i))
       use <- bool.guard(i != ctx.empty, Error(Nil))
       #(ctx.empty, []) |> Ok
