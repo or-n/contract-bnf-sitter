@@ -1,6 +1,8 @@
+import gleam/bool
 import gleam/int
 import gleam/list
 import gleam/order
+import gleam/result
 import gleam/string
 
 pub type Token {
@@ -19,6 +21,31 @@ pub fn to_string(token) {
 
 pub fn list_to_string(tokens) {
   tokens |> list.map(to_string) |> string.concat
+}
+
+pub fn drop_string(i, to_drop) {
+  let r = i |> string.starts_with(to_drop) |> bool.negate
+  use <- bool.guard(r, Error(Nil))
+  i |> string.drop_start(to_drop |> string.length) |> Ok
+}
+
+pub fn drop_token(tokens, token) {
+  use first <- result.try(tokens |> list.first)
+  let rest = tokens |> list.drop(1)
+  case token, first {
+    Text(drop_text), Text(text) -> {
+      use i <- result.try(text |> drop_string(drop_text))
+      Ok(rest |> list.prepend(i |> Text))
+    }
+    _, _ -> {
+      use <- bool.guard(first != token, Error(Nil))
+      Ok(rest)
+    }
+  }
+}
+
+pub fn drop_token_list(i, to_drop) {
+  to_drop |> list.try_fold(i, drop_token)
 }
 
 pub fn iterate(x, f) {

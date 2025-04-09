@@ -1,9 +1,7 @@
 import bnf
-import gleam/bool
 import gleam/io
 import gleam/list
 import gleam/result
-import gleam/string
 import indent
 
 pub fn drop(i) {
@@ -59,44 +57,21 @@ pub fn grammar() {
   ]
 }
 
-fn drop_token(tokens, token) {
-  use first <- result.try(tokens |> list.first)
-  let rest = tokens |> list.drop(1)
-  case token, first {
-    indent.Text(drop_text), indent.Text(text) -> {
-      use i <- result.try(text |> drop_string(drop_text))
-      Ok(rest |> list.prepend(i |> indent.Text))
-    }
-    _, _ -> {
-      use <- bool.guard(first != token, Error(Nil))
-      Ok(rest)
-    }
-  }
-}
-
-fn drop_fn(i, to_drop) {
-  to_drop |> list.try_fold(i, drop_token)
-}
-
-fn drop_string(i, to_drop) {
-  let r = i |> string.starts_with(to_drop) |> bool.negate
-  use <- bool.guard(r, Error(Nil))
-  i |> string.drop_start(to_drop |> string.length) |> Ok
-}
-
 pub fn main() {
   // let ctx = bnf.Context(drop_fn: drop_string, to_string: fn(x) { x }, empty: "")
-  let token_ctx =
-    bnf.Context(drop_fn, to_string: indent.list_to_string, empty: [])
-  let i =
+  let indent_ctx =
+    bnf.Context(
+      drop_fn: indent.drop_token_list,
+      to_string: indent.list_to_string,
+      empty: [],
+    )
+  let r =
     // "\t(0)\n\t\t."
     "(-2f01, (2137, 0))."
     // "(0 1 (2, 1))."
     // "(0)."
     |> indent.tokens
-  let r = i |> bnf.eat_rules(grammar(), token_ctx)
-  let r =
-    r
+    |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
       let #(i, ast) = pair
       echo i
