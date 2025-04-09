@@ -46,7 +46,7 @@ pub fn eat_rules(i, grammar, ctx) {
   })
 }
 
-pub fn eat_rule(i: a, rule, grammar, ctx) {
+pub fn eat_rule(i, rule, grammar, ctx) {
   let #(label, #(_variant, bnf)) = rule
   echo label
   use #(i, asts) <- result.try(drop_bnf(i, bnf, grammar, ctx))
@@ -55,9 +55,9 @@ pub fn eat_rule(i: a, rule, grammar, ctx) {
 
 pub fn drop_bnf(i, bnf, grammar, ctx: Context(a)) {
   case bnf {
-    Id(label) -> {
-      let bnfs = grammar |> list.key_filter(label)
-      bnfs
+    Id(label) ->
+      grammar
+      |> list.key_filter(label)
       |> list.fold_until(Error(Nil), fn(acc, variant_bnf) {
         let #(_variant, other_bnf) = variant_bnf
         case drop_bnf(i, other_bnf, grammar, ctx) {
@@ -68,7 +68,6 @@ pub fn drop_bnf(i, bnf, grammar, ctx: Context(a)) {
           _ -> acc |> list.Continue
         }
       })
-    }
     Drop(drop_i) -> {
       echo drop_i |> ctx.to_string
       use i <- result.try(i |> ctx.drop(drop_i))
