@@ -2,6 +2,7 @@ import bnf.{Id}
 import gleam/io
 import gleam/list
 import gleam/result
+import gleam/string
 import indent
 
 pub fn drop(i) {
@@ -10,6 +11,17 @@ pub fn drop(i) {
 
 pub fn end(i) {
   i |> indent.Text |> list.wrap |> bnf.End
+}
+
+pub fn alphabet() {
+  // 'a' to 'z'
+  list.range(97, 122)
+  |> list.try_map(string.utf_codepoint)
+  |> result.unwrap([])
+  |> list.map(fn(c) {
+    let s = c |> list.wrap |> string.from_utf_codepoints
+    #("alpha", #(s, s |> drop))
+  })
 }
 
 pub fn grammar() {
@@ -27,12 +39,14 @@ pub fn grammar() {
         |> bnf.Seq,
     )),
     #("term", #("i", Id("i"))),
+    #("term", #("id", Id("id"))),
+    #("id", #("alpha", [Id("alpha"), Id("alphanum") |> bnf.Rep] |> bnf.Seq)),
+    #("alphanum", #("alpha", Id("alpha"))),
+    #("alphanum", #("num", Id("i"))),
+    #("i", #("!0", ["-" |> drop |> bnf.Opt, Id("u")] |> bnf.Seq)),
     #("i", #("0", Id("0"))),
-    #("i", #(
-      "!0",
-      ["-" |> drop |> bnf.Opt, Id("f"), Id("?0f") |> bnf.Rep]
-        |> bnf.Seq,
-    )),
+    #("u", #("dec", [Id("9"), Id("?09") |> bnf.Rep] |> bnf.Seq)),
+    #("u", #("hex", ["0x" |> drop, Id("f"), Id("?0f") |> bnf.Rep] |> bnf.Seq)),
     #("?0f", #("0", Id("0"))),
     #("?0f", #("!0", Id("f"))),
     #("f", #("f", "f" |> drop)),
@@ -42,6 +56,8 @@ pub fn grammar() {
     #("f", #("b", "b" |> drop)),
     #("f", #("a", "a" |> drop)),
     #("f", #("<", Id("9"))),
+    #("?09", #("0", Id("0"))),
+    #("?09", #("!0", Id("9"))),
     #("9", #("9", "9" |> drop)),
     #("9", #("8", "8" |> drop)),
     #("9", #("<", Id("7"))),
@@ -54,7 +70,9 @@ pub fn grammar() {
     #("7", #("<", Id("1"))),
     #("1", #("1", "1" |> drop)),
     #("0", #("0", "0" |> drop)),
+    #("alpha", #("_", "_" |> drop)),
   ]
+  |> list.append(alphabet())
 }
 
 pub fn main() {
@@ -67,9 +85,11 @@ pub fn main() {
     )
   let r =
     // "\t(0)\n\t\t."
-    "(-2f01, (2137, 0))."
+    // "(-2f01, (2137, 0))."
     // "(0 1 (2, 1))."
     // "(0)."
+    "(0xa)."
+    // "(_a21)."
     |> indent.tokens
     |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
