@@ -17,15 +17,13 @@ pub type LBNF(i) =
   List(#(String, #(String, BNF(i))))
 
 pub type AST {
-  Node(String, List(AST))
+  Node(label: String, children: List(AST))
 }
 
-pub fn show_ast(ast) {
-  let Node(label, children) = ast
-  let label_str = label
-  use <- bool.guard(children |> list.is_empty, label_str |> util.quote)
-  let children_str = children |> list.map(show_ast) |> string.join(", ")
-  label_str <> "(" <> children_str <> ")"
+pub fn show_ast(ast: AST) {
+  use <- bool.guard(ast.children |> list.is_empty, ast.label |> util.quote)
+  let children_str = ast.children |> list.map(show_ast) |> string.join(", ")
+  ast.label <> "(" <> children_str <> ")"
 }
 
 pub type Context(a) {
