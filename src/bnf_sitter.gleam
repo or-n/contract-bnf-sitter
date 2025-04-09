@@ -58,35 +58,33 @@ pub fn grammar() {
   |> list.flatten
 }
 
-pub fn default_ctx() {
-  bnf.Context(drop: util.drop_string, to_string: fn(x) { x }, empty: "")
-}
+pub const default_ctx = bnf.Context(
+  drop: util.drop_string,
+  to_string: util.id,
+  empty: "",
+)
 
-pub fn indent_ctx() {
-  bnf.Context(
-    drop: indent.drop_token_list,
-    to_string: indent.token_list_to_string,
-    empty: [],
-  )
-}
+const indent_ctx = bnf.Context(
+  drop: indent.drop_token_list,
+  to_string: indent.token_list_to_string,
+  empty: [],
+)
 
-fn examples() {
-  [
-    #("a", "\t(0)\n\t\t."),
-    #("b", "(-0x2f01, (2137, 0))."),
-    #("c", "(0 1 (2, 1))."),
-    #("d", "0."),
-    #("e", "(_a21 0xa)."),
-  ]
-}
+const examples = [
+  #("a", "\t(0)\n\t\t."),
+  #("b", "(-0x2f01, (2137, 0))."),
+  #("c", "(0 1 (2, 1))."),
+  #("d", "0."),
+  #("e", "(_a21 0xa)."),
+]
 
 pub fn main() {
   let r =
-    examples()
-    |> list.key_find("x")
+    examples
+    |> list.key_find("e")
     |> result.unwrap("")
     |> indent.tokens
-    |> bnf.eat_rules(grammar(), indent_ctx())
+    |> bnf.eat_rules(grammar(), indent_ctx)
     |> result.map(fn(pair) {
       let #(i, ast) = pair
       let i_str = i |> indent.token_list_to_string |> util.quote

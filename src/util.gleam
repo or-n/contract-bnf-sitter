@@ -3,6 +3,10 @@ import gleam/list
 import gleam/result
 import gleam/string
 
+pub fn id(x) {
+  x
+}
+
 pub fn quote(text) {
   "\"" <> text <> "\""
 }
