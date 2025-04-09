@@ -2,7 +2,6 @@ import gleam/bool
 import gleam/list
 import gleam/result
 import gleam/string
-import indent
 
 pub type BNF(i) {
   Id(String)
@@ -40,7 +39,7 @@ pub type Context(a) {
   )
 }
 
-pub fn eat_rules(i: List(indent.Token), grammar, ctx) {
+pub fn eat_rules(i, grammar, ctx) {
   grammar
   |> list.fold_until(Error(i), fn(acc, rule) {
     case eat_rule(i, rule, grammar, ctx) {
@@ -57,7 +56,7 @@ pub fn eat_rule(i: a, rule, grammar, ctx) {
   #(i, Node(label, asts)) |> Ok
 }
 
-pub fn drop_bnf(i: a, bnf, grammar: LBNF(a), ctx: Context(a)) {
+pub fn drop_bnf(i, bnf, grammar, ctx: Context(a)) {
   case bnf {
     Id(label) -> {
       let bnfs = grammar |> list.key_filter(label)

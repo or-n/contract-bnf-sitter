@@ -14,7 +14,7 @@ pub fn end(i) {
   i |> indent.Text |> list.wrap |> bnf.End
 }
 
-pub fn grammar() -> bnf.LBNF(List(indent.Token)) {
+pub fn grammar() {
   [
     #("end", #("term", [bnf.Id("term"), "." |> end] |> bnf.Seq)),
     #("term", #("wrap", ["(" |> drop, bnf.Id("terms"), ")" |> drop] |> bnf.Seq)),
