@@ -29,7 +29,7 @@ pub fn chars(name, text) {
 pub fn grammar() {
   [
     [
-      #("end", #("term", [Id("t"), end(".")] |> Seq)),
+      #("end", #("term", [Id("t"), drop("."), bnf.End([indent.Newline])] |> Seq)),
       #("t", #("wrap", [drop("("), Id("terms"), drop(")")] |> Seq)),
       #("terms", #("term", [Id("t"), Id("app"), Id("app") |> Rep] |> Seq)),
       #("app", #("app", [drop(" "), Id("t")] |> Seq)),
@@ -87,7 +87,7 @@ pub const examples = [
   #("c", "(0 1 (2, 1))."),
   #("d", "0."),
   #("e", "(_a21 0xa)."),
-  #("pl", "Żółć"),
+  #("pl", "Żółć."),
 ]
 
 pub fn main() {

@@ -9,14 +9,16 @@ import util
 pub type Token {
   Indent
   Deindent
+  Newline
   Text(String)
 }
 
 pub fn token_to_string(token) {
   case token {
-    Text(text) -> text
     Indent -> "<Indent>"
     Deindent -> "<Deindent>"
+    Newline -> "<Newline>"
+    Text(text) -> text
   }
 }
 
@@ -66,9 +68,12 @@ pub fn tokens(i) {
         order.Eq -> []
         order.Gt -> Indent |> list.repeat(d)
       }
-      use <- bool.guard(line |> string.is_empty, #(after, tokens))
-      let tokens = tokens |> list.append([Text(line)])
+      use <- bool.guard(line |> string.is_empty, {
+        let tokens = tokens |> list.append([Newline])
+        #(after, tokens)
+      })
+      let tokens = tokens |> list.append([Text(line), Newline])
       #(after, tokens)
     })
-  lines |> list.flatten
+  lines |> list.flatten |> util.drop_last
 }
