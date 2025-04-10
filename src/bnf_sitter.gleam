@@ -22,24 +22,8 @@ pub fn char_range(name, start, end) {
   |> list.map(fn(s) { #(name, #(s, drop(s))) })
 }
 
-pub fn graphemes(text) {
-  let #(acc, _) =
-    #([], text)
-    |> util.iterate(fn(pair) {
-      let #(acc, text) = pair
-      case text |> string.pop_grapheme() {
-        Ok(pair) -> {
-          let #(first, rest) = pair
-          #([first, ..acc], rest) |> Ok
-        }
-        _ -> pair |> Error
-      }
-    })
-  acc |> list.reverse
-}
-
 pub fn chars(name, text) {
-  text |> graphemes |> list.map(fn(s) { #(name, #(s, drop(s))) })
+  text |> string.to_graphemes |> list.map(fn(s) { #(name, #(s, drop(s))) })
 }
 
 pub fn grammar() {
