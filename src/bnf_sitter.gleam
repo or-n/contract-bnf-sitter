@@ -22,6 +22,26 @@ pub fn char_range(name, start, end) {
   |> list.map(fn(s) { #(name, #(s, drop(s))) })
 }
 
+pub fn graphemes(text) {
+  let #(acc, _) =
+    #([], text)
+    |> util.iterate(fn(pair) {
+      let #(acc, text) = pair
+      case text |> string.pop_grapheme() {
+        Ok(pair) -> {
+          let #(first, rest) = pair
+          #([first, ..acc], rest) |> Ok
+        }
+        _ -> pair |> Error
+      }
+    })
+  acc |> list.reverse
+}
+
+pub fn chars(name, text) {
+  text |> graphemes |> list.map(fn(s) { #(name, #(s, drop(s))) })
+}
+
 pub fn grammar() {
   [
     [
@@ -49,14 +69,21 @@ pub fn grammar() {
       #("1", #("1", drop("1"))),
       #("0", #("0", drop("0"))),
       #("alpha", #("_", drop("_"))),
+      #("alpha", #("lower", Id("lower"))),
+      #("alpha", #("upper", Id("upper"))),
     ],
     char_range("f", "a", "f"),
     char_range("9", "8", "9"),
     char_range("7", "2", "7"),
-    char_range("alpha", "a", "z"),
+    char_range("lower", "a", "z"),
+    char_range("upper", "A", "Z"),
+    chars("lower", pl),
+    chars("upper", pl |> string.uppercase),
   ]
   |> list.flatten
 }
+
+pub const pl = "ąćęłńóśźż"
 
 pub const default_ctx = bnf.Context(
   drop: util.drop_string,
@@ -64,24 +91,25 @@ pub const default_ctx = bnf.Context(
   empty: "",
 )
 
-const indent_ctx = bnf.Context(
+pub const indent_ctx = bnf.Context(
   drop: indent.drop_token_list,
   to_string: indent.token_list_to_string,
   empty: [],
 )
 
-const examples = [
+pub const examples = [
   #("a", "\t(0)\n\t\t."),
   #("b", "(-0x2f01, (2137, 0))."),
   #("c", "(0 1 (2, 1))."),
   #("d", "0."),
   #("e", "(_a21 0xa)."),
+  #("pl", "Żółć"),
 ]
 
 pub fn main() {
   let i =
     examples
-    |> list.key_find("e")
+    |> list.key_find("pl")
     |> result.unwrap("")
     |> indent.tokens
   let r =
