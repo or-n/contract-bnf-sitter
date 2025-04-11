@@ -1,5 +1,4 @@
 import gleam/bool
-import gleam/int
 import gleam/list
 import gleam/result
 import gleam/string
@@ -34,6 +33,5 @@ pub fn ord(char_str) {
 }
 
 pub fn drop_last(xs) {
-  let #(before, _) = xs |> list.split(xs |> list.length |> int.subtract(1))
-  before
+  xs |> list.reverse |> list.drop(1) |> list.reverse
 }
