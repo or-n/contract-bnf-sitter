@@ -35,10 +35,10 @@ consts rules =
     shouldMkConst (literal, count) = count >= 2
     literalGroups = map (\(literal, count) -> (literal, constId literal)) 
       $ filter shouldMkConst
-      $ map (\xs@(x: _), (x, length xs))
+      $ map (\xs@(x: _) -> (x, length xs))
       $ group
       $ concatMap literals rules
-    (literal, id) -> replaceLiteral literal (TreeSitter.Const id)
+    replaceLiteralId (literal, id) = replaceLiteral literal (TreeSitter.Const id)
     replaceInRule rule = foldr replaceLiteralId rule literalGroups
   in
     (literalGroups, map replaceInRule rules)
