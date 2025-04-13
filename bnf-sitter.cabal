@@ -31,6 +31,12 @@ executable bnf-sitter
       PrintTreeSitter
       SkelTreeSitter
       LexTreeSitter
+      AbsRustRegex
+      ParRustRegex
+      ErrM
+      PrintRustRegex
+      SkelRustRegex
+      LexRustRegex
     -- other-extensions:
     build-depends:
         base ^>=4.18.2.1,
@@ -38,7 +44,8 @@ executable bnf-sitter
     hs-source-dirs:
         app,
         LBNF,
-        TreeSitter
+        TreeSitter,
+        RustRegex,
     build-tool-depends:
         happy:happy,
         alex:alex
