@@ -1,6 +1,7 @@
 module Main where
 
 import ErrM
+import Data.List (lookup)
 
 import qualified AbsLBNF as LBNF
 import qualified ParLBNF as LBNF
@@ -19,16 +20,43 @@ import Translate
 lbnf = LBNF.pGrammar . LBNF.myLexer
 treeSitter = TreeSitter.pGrammar . TreeSitter.myLexer
 
-main = do
-  -- input <- readFile "samplesLBNF/digit.cf"
-  -- input <- readFile "samplesTreeSitter/quote.js"
-  input <- readFile "samplesTreeSitter/digit.js"
-  case treeSitter input of
-    Ok tree -> do
-      putStrLn "Parsed successfully!"
-      putStrLn (TreeSitter.printTree tree)
-      -- let t = translate tree
-      -- let str = TreeSitter.printTree t
-      -- putStrLn str
-      -- writeFile "samplesTreeSitter/digit.js" str
-    Bad err -> putStrLn $ "Parse error:\n" ++ err
+samplesLBNF =
+  [ ("digit", "digit.cf")
+  , ("const", "const.cf")
+  ]
+
+samplesTreeSitter =
+  [ ("minimal", "minimal.js")
+  , ("quote", "quote.js")
+  , ("digit", "digit.js")
+  , ("const", "const.js")
+  ]
+
+data Input = LBNF | TreeSitter
+
+main = go TreeSitter "const"
+
+go inputType sampleId = do
+  let dirLBNF = "samplesLBNF/"
+  let dirTreeSitter = "samplesTreeSitter/"
+  case inputType of
+    LBNF -> do
+      let Just sample = lookup sampleId samplesLBNF
+      input <- readFile $ dirLBNF <> sample
+      case lbnf input of
+        Ok tree -> do
+          putStrLn "Parsed successfully!"
+          putStrLn (LBNF.printTree tree)
+          let t = translate tree
+          let str = TreeSitter.printTree t
+          putStrLn str
+          writeFile (dirTreeSitter <> sampleId <> ".js") str
+        Bad err -> putStrLn $ "Parse error:\n" ++ err
+    TreeSitter -> do
+      let Just sample = lookup sampleId samplesTreeSitter
+      input <- readFile $ dirTreeSitter <> sample
+      case treeSitter input of
+        Ok tree -> do
+          putStrLn "Parsed successfully!"
+          putStrLn (TreeSitter.printTree tree)
+        Bad err -> putStrLn $ "Parse error:\n" ++ err

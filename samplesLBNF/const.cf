@@ -1,0 +1,6 @@
+A. Grammar ::= A ;
+B. Grammar ::= B ;
+
+Const. A ::= "constant" ;
+
+Const. B ::= "constant" ;
