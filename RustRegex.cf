@@ -1,0 +1,27 @@
+entrypoints RustRegexGrammar ;
+
+Class. RustRegexGrammar ::= "[" Class "]" ;
+Alt. RustRegexGrammar ::= Class "|" Class ;
+
+Char. Class ::= Char ;
+Seq. Class ::= [Class] ;
+Except. Class ::= "^" [Class] ;
+Range. Class ::= Char "-" Char ;
+Ascii. Class ::= "[:alpha:]" ;
+NotAscii. Class ::= "[:^alpha:]" ;
+Intersect. Class ::= Class "&&" Class ;
+Subtract. Class ::= Class "--" Class ;
+SymmetricDiff. Class ::= Class "~~" Class ;
+Escape. Class ::= "\\" Char ;
+Nest. Class ::= "[" Class "]" ;
+separator Class "" ;
+
+AnyExceptNewline. Character ::= "." ;
+Digit. Character ::= "\\d" ;
+NotDigit. Character ::= "\\D" ;
+UnicodeLetter. Character ::= "\\pN" ;
+NotUnicodeLetter. Character ::= "\\PN" ;
+LetterClass. Character ::= "\\p" "{" Name "}" ;
+NotLetterClass. Character ::= "\\P" "{" Name "}" ;
+
+token Name letter+ ;
