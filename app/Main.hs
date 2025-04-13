@@ -12,7 +12,7 @@ import PrintTreeSitter
 
 main :: IO ()
 main = do
-  input <- readFile "samplesTreeSitter/minimal.js"
+  input <- readFile "samplesTreeSitter/quote.js"
   case pTreeSitterGrammar (myLexer input) of
     Ok tree -> do
       putStrLn "Parsed successfully!"

@@ -43,9 +43,8 @@ import LexTreeSitter
   'repeat'    { PT _ (TS _ 18) }
   'rules'     { PT _ (TS _ 19) }
   'seq'       { PT _ (TS _ 20) }
-  'todo'      { PT _ (TS _ 21) }
-  '{'         { PT _ (TS _ 22) }
-  '}'         { PT _ (TS _ 23) }
+  '{'         { PT _ (TS _ 21) }
+  '}'         { PT _ (TS _ 22) }
   L_quoted    { PT _ (TL $$)   }
   L_Id        { PT _ (T_Id $$) }
 
@@ -95,16 +94,13 @@ Expression
   | '$' '.' Id { AbsTreeSitter.Symbol $3 }
   | Id { AbsTreeSitter.Const $1 }
   | String { AbsTreeSitter.Literal $1 }
-  | 'new' 'RustRegex' '(' Regex ')' { AbsTreeSitter.Regex $4 }
+  | 'new' 'RustRegex' '(' String ')' { AbsTreeSitter.Regex $4 }
 
 ListExpression :: { [AbsTreeSitter.Expression] }
 ListExpression
   : {- empty -} { [] }
   | Expression { (:[]) $1 }
   | Expression ',' ListExpression { (:) $1 $3 }
-
-Regex :: { AbsTreeSitter.Regex }
-Regex : 'todo' { AbsTreeSitter.Todo }
 
 {
 

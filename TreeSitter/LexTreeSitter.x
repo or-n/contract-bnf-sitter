@@ -170,8 +170,7 @@ resWords =
        (b "module" 15
           (b "grammar" 14 (b "exports" 13 N N) N)
           (b "new" 17 (b "name" 16 N N) N))
-       (b "todo" 21
-          (b "seq" 20 (b "rules" 19 N N) N) (b "}" 23 (b "{" 22 N N) N)))
+       (b "{" 21 (b "seq" 20 (b "rules" 19 N N) N) (b "}" 22 N N)))
   where
   b s n = B bs (TS bs n)
     where

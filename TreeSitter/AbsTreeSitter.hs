@@ -38,10 +38,7 @@ data Expression
     | Symbol Id
     | Const Id
     | Literal String
-    | Regex Regex
-  deriving (C.Eq, C.Ord, C.Show, C.Read)
-
-data Regex = Todo
+    | Regex String
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Id = Id String

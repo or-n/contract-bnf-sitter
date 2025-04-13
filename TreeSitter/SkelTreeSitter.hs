@@ -55,8 +55,4 @@ transExpression x = case x of
   AbsTreeSitter.Symbol id -> failure x
   AbsTreeSitter.Const id -> failure x
   AbsTreeSitter.Literal string -> failure x
-  AbsTreeSitter.Regex regex -> failure x
-
-transRegex :: AbsTreeSitter.Regex -> Result
-transRegex x = case x of
-  AbsTreeSitter.Todo -> failure x
+  AbsTreeSitter.Regex string -> failure x

@@ -183,13 +183,9 @@ instance Print AbsTreeSitter.Expression where
     AbsTreeSitter.Symbol id_ -> prPrec i 0 (concatD [doc (showString "$"), doc (showString "."), prt 0 id_])
     AbsTreeSitter.Const id_ -> prPrec i 0 (concatD [prt 0 id_])
     AbsTreeSitter.Literal str -> prPrec i 0 (concatD [printString str])
-    AbsTreeSitter.Regex regex -> prPrec i 0 (concatD [doc (showString "new"), doc (showString "RustRegex"), doc (showString "("), prt 0 regex, doc (showString ")")])
+    AbsTreeSitter.Regex str -> prPrec i 0 (concatD [doc (showString "new"), doc (showString "RustRegex"), doc (showString "("), printString str, doc (showString ")")])
 
 instance Print [AbsTreeSitter.Expression] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
-
-instance Print AbsTreeSitter.Regex where
-  prt i = \case
-    AbsTreeSitter.Todo -> prPrec i 0 (concatD [doc (showString "todo")])

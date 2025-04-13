@@ -25,9 +25,7 @@ Repeat. Expression ::= "repeat" "(" Expression ")" ;
 Symbol. Expression ::= "$" "." Id ;
 Const. Expression ::= Id ;
 Literal. Expression ::= String ;
-Regex. Expression ::= "new" "RustRegex" "(" Regex ")" ;
+Regex. Expression ::= "new" "RustRegex" "(" String ")" ;
 separator Expression "," ;
-
-Todo. Regex ::= "todo" ;
 
 token Id ((letter | '_') (letter | digit | '_')*) ;

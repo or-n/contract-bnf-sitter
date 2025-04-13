@@ -7,21 +7,17 @@ module.exports = grammar({
     _statement: $ => choice(
       $.string
     ),
+   
+    string: $ => 
+      seq(
+        "\"",
+        repeat(choice(
+          new RustRegex("([^\"\\]|\\.)*"),
+          seq("\\", $.escaped_char)
+        )),
+        "\""
+      ),
 
-    /*
-    string: $ => choice(
-      seq('"', repeat(choice($.escaped_char, /[^"\\]/)), '"'),
-      seq("'", repeat(choice($.escaped_char, /[^'\\]/)), "'")
-    ),
-
-    escaped_char: $ => seq('\\', /["'\\bfnrtv]/),
-    */
-    
-    string: $ => choice(
-      seq('"', repeat(choice($.escaped_char, new RustRegex("[\[\]]"))), '"'),
-      seq("'", repeat(choice($.escaped_char, new RustRegex("[\[\]]"))), "'")
-    ),
-
-    escaped_char: $ => seq("\\", "\\"),
+    escaped_char: $ => choice("b", "f", "n", "r", "t", "v"),
   },
 });
