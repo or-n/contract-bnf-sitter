@@ -141,12 +141,12 @@ instance Print AbsRustRegex.Number where
   prt _ (AbsRustRegex.Number i) = doc $ showString i
 instance Print AbsRustRegex.Name where
   prt _ (AbsRustRegex.Name i) = doc $ showString i
-instance Print AbsRustRegex.RustRegexGrammar where
+instance Print AbsRustRegex.Grammar where
   prt i = \case
     AbsRustRegex.ConcatGrammar concat -> prPrec i 0 (concatD [prt 0 concat])
     AbsRustRegex.Class class_ repeat -> prPrec i 0 (concatD [doc (showString "["), prt 0 class_, doc (showString "]"), prt 0 repeat])
-    AbsRustRegex.Alt rustregexgrammar1 rustregexgrammar2 -> prPrec i 0 (concatD [prt 0 rustregexgrammar1, doc (showString "|"), prt 0 rustregexgrammar2])
-    AbsRustRegex.Group rustregexgrammar repeat -> prPrec i 0 (concatD [doc (showString "("), prt 0 rustregexgrammar, doc (showString ")"), prt 0 repeat])
+    AbsRustRegex.Alt grammar1 grammar2 -> prPrec i 0 (concatD [prt 0 grammar1, doc (showString "|"), prt 0 grammar2])
+    AbsRustRegex.Group grammar repeat -> prPrec i 0 (concatD [doc (showString "("), prt 0 grammar, doc (showString ")"), prt 0 repeat])
 
 instance Print AbsRustRegex.Class where
   prt i = \case

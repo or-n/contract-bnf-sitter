@@ -8,7 +8,7 @@
 module ParLBNF
   ( happyError
   , myLexer
-  , pLBNFGrammar
+  , pGrammar
   , pListDef
   , pListItem
   , pDef
@@ -39,7 +39,7 @@ import LexLBNF
 
 }
 
-%name pLBNFGrammar LBNFGrammar
+%name pGrammar Grammar
 %name pListDef ListDef
 %name pListItem ListItem
 %name pDef Def
@@ -120,8 +120,8 @@ Integer  : L_integ  { (read $1) :: Integer }
 String  :: { String }
 String   : L_quoted { $1 }
 
-LBNFGrammar :: { AbsLBNF.LBNFGrammar }
-LBNFGrammar : ListDef { AbsLBNF.MkGrammar $1 }
+Grammar :: { AbsLBNF.Grammar }
+Grammar : ListDef { AbsLBNF.MkGrammar $1 }
 
 ListDef :: { [AbsLBNF.Def] }
 ListDef : {- empty -} { [] } | Def ';' ListDef { (:) $1 $3 }

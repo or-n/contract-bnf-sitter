@@ -20,7 +20,7 @@ import Control.Monad      ( when )
 
 import AbsLBNF   ()
 import LexLBNF   ( Token, mkPosToken )
-import ParLBNF   ( pLBNFGrammar, myLexer )
+import ParLBNF   ( pGrammar, myLexer )
 import PrintLBNF ( Print, printTree )
 import SkelLBNF  ()
 
@@ -70,7 +70,7 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    []         -> getContents >>= run 2 pLBNFGrammar
-    "-s":fs    -> mapM_ (runFile 0 pLBNFGrammar) fs
-    fs         -> mapM_ (runFile 2 pLBNFGrammar) fs
+    []         -> getContents >>= run 2 pGrammar
+    "-s":fs    -> mapM_ (runFile 0 pGrammar) fs
+    fs         -> mapM_ (runFile 2 pGrammar) fs
 

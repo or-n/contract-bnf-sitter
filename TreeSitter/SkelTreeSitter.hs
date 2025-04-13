@@ -19,9 +19,9 @@ transId :: AbsTreeSitter.Id -> Result
 transId x = case x of
   AbsTreeSitter.Id string -> failure x
 
-transTreeSitterGrammar :: AbsTreeSitter.TreeSitterGrammar -> Result
-transTreeSitterGrammar x = case x of
-  AbsTreeSitter.TreeSitterGrammar preamble grammarbody -> failure x
+transGrammar :: AbsTreeSitter.Grammar -> Result
+transGrammar x = case x of
+  AbsTreeSitter.Grammar preamble grammarbody -> failure x
 
 transPreamble :: AbsTreeSitter.Preamble -> Result
 transPreamble x = case x of

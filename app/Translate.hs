@@ -1,4 +1,4 @@
-module Main where
+module Translate where
 
 import qualified AbsLBNF as LBNF
 import qualified ParLBNF as LBNF
@@ -15,12 +15,5 @@ import qualified ParRustRegex as RustRegex
 import qualified ErrM as RustRegex
 import qualified PrintRustRegex as RustRegex
 
-import Translate
-
-main = do
-  input <- readFile "samplesRustRegex/quote"
-  case RustRegex.pGrammar (RustRegex.myLexer input) of
-    RustRegex.Ok tree -> do
-      putStrLn "Parsed successfully!"
-      putStrLn (RustRegex.printTree tree)
-    RustRegex.Bad err -> putStrLn $ "Parse error:\n" ++ err
+translate :: LBNF.Grammar -> TreeSitter.Grammar
+translate = undefined

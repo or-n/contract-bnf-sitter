@@ -8,7 +8,17 @@
 module ParTreeSitter
   ( happyError
   , myLexer
-  , pTreeSitterGrammar
+  , pGrammar
+  , pPreamble
+  , pConstDecl
+  , pListConstDecl
+  , pGrammarBody
+  , pName
+  , pRules
+  , pRule
+  , pListRule
+  , pExpression
+  , pListExpression
   ) where
 
 import Prelude
@@ -18,7 +28,17 @@ import LexTreeSitter
 
 }
 
-%name pTreeSitterGrammar TreeSitterGrammar
+%name pGrammar Grammar
+%name pPreamble Preamble
+%name pConstDecl ConstDecl
+%name pListConstDecl ListConstDecl
+%name pGrammarBody GrammarBody
+%name pName Name
+%name pRules Rules
+%name pRule Rule
+%name pListRule ListRule
+%name pExpression Expression
+%name pListExpression ListExpression
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
@@ -57,9 +77,9 @@ String   : L_quoted { $1 }
 Id :: { AbsTreeSitter.Id }
 Id  : L_Id { AbsTreeSitter.Id $1 }
 
-TreeSitterGrammar :: { AbsTreeSitter.TreeSitterGrammar }
-TreeSitterGrammar
-  : Preamble 'module' '.' 'exports' '=' 'grammar' '(' '{' GrammarBody '}' ')' ';' { AbsTreeSitter.TreeSitterGrammar $1 $9 }
+Grammar :: { AbsTreeSitter.Grammar }
+Grammar
+  : Preamble 'module' '.' 'exports' '=' 'grammar' '(' '{' GrammarBody '}' ')' ';' { AbsTreeSitter.Grammar $1 $9 }
 
 Preamble :: { AbsTreeSitter.Preamble }
 Preamble : ListConstDecl { AbsTreeSitter.Preamble $1 }

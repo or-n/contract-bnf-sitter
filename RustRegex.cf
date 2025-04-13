@@ -1,9 +1,8 @@
-entrypoints RustRegexGrammar ;
 
-ConcatGrammar. RustRegexGrammar ::= Concat ;
-Class. RustRegexGrammar ::= "[" Class "]" Repeat ;
-Alt. RustRegexGrammar ::= RustRegexGrammar "|" RustRegexGrammar ;
-Group. RustRegexGrammar ::= "(" RustRegexGrammar ")" Repeat ;
+ConcatGrammar. Grammar ::= Concat ;
+Class. Grammar ::= "[" Class "]" Repeat ;
+Alt. Grammar ::= Grammar "|" Grammar ;
+Group. Grammar ::= "(" Grammar ")" Repeat ;
 
 ConcatClass. Class ::= Concat ;
 Seq. Class ::= [Class] ;

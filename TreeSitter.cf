@@ -1,9 +1,7 @@
 comment "//" ;
 comment "/*" "*/" ;
 
-entrypoints TreeSitterGrammar ;
-
-TreeSitterGrammar. TreeSitterGrammar ::=
+Grammar. Grammar ::=
 	Preamble "module" "." "exports" "=" "grammar" "(" "{" GrammarBody "}" ")" ";" ;
 
 Preamble. Preamble ::= [ConstDecl] ;

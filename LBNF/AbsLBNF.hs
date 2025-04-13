@@ -10,7 +10,7 @@ import Prelude (Char, Integer, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
-data LBNFGrammar = MkGrammar [Def]
+data Grammar = MkGrammar [Def]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Def

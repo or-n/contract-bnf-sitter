@@ -8,7 +8,15 @@
 module ParRustRegex
   ( happyError
   , myLexer
-  , pRustRegexGrammar
+  , pGrammar
+  , pClass
+  , pListClass
+  , pConcat
+  , pListConcat
+  , pCharacter
+  , pRepeat
+  , pEmpty
+  , pMyChar
   ) where
 
 import Prelude
@@ -18,7 +26,15 @@ import LexRustRegex
 
 }
 
-%name pRustRegexGrammar RustRegexGrammar
+%name pGrammar Grammar
+%name pClass Class
+%name pListClass ListClass
+%name pConcat Concat
+%name pListConcat ListConcat
+%name pCharacter Character
+%name pRepeat Repeat
+%name pEmpty Empty
+%name pMyChar MyChar
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
@@ -73,12 +89,12 @@ Number  : L_Number { AbsRustRegex.Number $1 }
 Name :: { AbsRustRegex.Name }
 Name  : L_Name { AbsRustRegex.Name $1 }
 
-RustRegexGrammar :: { AbsRustRegex.RustRegexGrammar }
-RustRegexGrammar
+Grammar :: { AbsRustRegex.Grammar }
+Grammar
   : Concat { AbsRustRegex.ConcatGrammar $1 }
   | '[' Class ']' Repeat { AbsRustRegex.Class $2 $4 }
-  | RustRegexGrammar '|' RustRegexGrammar { AbsRustRegex.Alt $1 $3 }
-  | '(' RustRegexGrammar ')' Repeat { AbsRustRegex.Group $2 $4 }
+  | Grammar '|' Grammar { AbsRustRegex.Alt $1 $3 }
+  | '(' Grammar ')' Repeat { AbsRustRegex.Group $2 $4 }
 
 Class :: { AbsRustRegex.Class }
 Class

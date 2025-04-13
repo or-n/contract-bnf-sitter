@@ -20,7 +20,7 @@ import Control.Monad      ( when )
 
 import AbsTreeSitter   ()
 import LexTreeSitter   ( Token, mkPosToken )
-import ParTreeSitter   ( pTreeSitterGrammar, myLexer )
+import ParTreeSitter   ( pGrammar, myLexer )
 import PrintTreeSitter ( Print, printTree )
 import SkelTreeSitter  ()
 
@@ -70,7 +70,7 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    []         -> getContents >>= run 2 pTreeSitterGrammar
-    "-s":fs    -> mapM_ (runFile 0 pTreeSitterGrammar) fs
-    fs         -> mapM_ (runFile 2 pTreeSitterGrammar) fs
+    []         -> getContents >>= run 2 pGrammar
+    "-s":fs    -> mapM_ (runFile 0 pGrammar) fs
+    fs         -> mapM_ (runFile 2 pGrammar) fs
 

@@ -139,9 +139,9 @@ instance Print Double where
 
 instance Print AbsTreeSitter.Id where
   prt _ (AbsTreeSitter.Id i) = doc $ showString i
-instance Print AbsTreeSitter.TreeSitterGrammar where
+instance Print AbsTreeSitter.Grammar where
   prt i = \case
-    AbsTreeSitter.TreeSitterGrammar preamble grammarbody -> prPrec i 0 (concatD [prt 0 preamble, doc (showString "module"), doc (showString "."), doc (showString "exports"), doc (showString "="), doc (showString "grammar"), doc (showString "("), doc (showString "{"), prt 0 grammarbody, doc (showString "}"), doc (showString ")"), doc (showString ";")])
+    AbsTreeSitter.Grammar preamble grammarbody -> prPrec i 0 (concatD [prt 0 preamble, doc (showString "module"), doc (showString "."), doc (showString "exports"), doc (showString "="), doc (showString "grammar"), doc (showString "("), doc (showString "{"), prt 0 grammarbody, doc (showString "}"), doc (showString ")"), doc (showString ";")])
 
 instance Print AbsTreeSitter.Preamble where
   prt i = \case

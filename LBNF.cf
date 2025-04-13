@@ -5,7 +5,7 @@
 
 -- A Grammar is a sequence of definitions
 
-MkGrammar . LBNFGrammar ::= [Def] ;
+MkGrammar . Grammar ::= [Def] ;
 
 []  . [Def] ::= ;
 (:) . [Def] ::= Def ";" [Def] ;

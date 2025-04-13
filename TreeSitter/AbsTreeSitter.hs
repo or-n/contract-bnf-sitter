@@ -10,7 +10,7 @@ import Prelude (String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
-data TreeSitterGrammar = TreeSitterGrammar Preamble GrammarBody
+data Grammar = Grammar Preamble GrammarBody
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Preamble = Preamble [ConstDecl]

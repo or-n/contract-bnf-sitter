@@ -23,12 +23,12 @@ transName :: AbsRustRegex.Name -> Result
 transName x = case x of
   AbsRustRegex.Name string -> failure x
 
-transRustRegexGrammar :: AbsRustRegex.RustRegexGrammar -> Result
-transRustRegexGrammar x = case x of
+transGrammar :: AbsRustRegex.Grammar -> Result
+transGrammar x = case x of
   AbsRustRegex.ConcatGrammar concat -> failure x
   AbsRustRegex.Class class_ repeat -> failure x
-  AbsRustRegex.Alt rustregexgrammar1 rustregexgrammar2 -> failure x
-  AbsRustRegex.Group rustregexgrammar repeat -> failure x
+  AbsRustRegex.Alt grammar1 grammar2 -> failure x
+  AbsRustRegex.Group grammar repeat -> failure x
 
 transClass :: AbsRustRegex.Class -> Result
 transClass x = case x of

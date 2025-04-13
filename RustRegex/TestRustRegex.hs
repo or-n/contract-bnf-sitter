@@ -20,7 +20,7 @@ import Control.Monad      ( when )
 
 import AbsRustRegex   ()
 import LexRustRegex   ( Token, mkPosToken )
-import ParRustRegex   ( pRustRegexGrammar, myLexer )
+import ParRustRegex   ( pGrammar, myLexer )
 import PrintRustRegex ( Print, printTree )
 import SkelRustRegex  ()
 
@@ -70,7 +70,7 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    []         -> getContents >>= run 2 pRustRegexGrammar
-    "-s":fs    -> mapM_ (runFile 0 pRustRegexGrammar) fs
-    fs         -> mapM_ (runFile 2 pRustRegexGrammar) fs
+    []         -> getContents >>= run 2 pGrammar
+    "-s":fs    -> mapM_ (runFile 0 pGrammar) fs
+    fs         -> mapM_ (runFile 2 pGrammar) fs
 

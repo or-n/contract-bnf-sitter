@@ -10,11 +10,11 @@ import Prelude (Char, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
-data RustRegexGrammar
+data Grammar
     = ConcatGrammar Concat
     | Class Class Repeat
-    | Alt RustRegexGrammar RustRegexGrammar
-    | Group RustRegexGrammar Repeat
+    | Alt Grammar Grammar
+    | Group Grammar Repeat
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Class
