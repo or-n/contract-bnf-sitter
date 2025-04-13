@@ -23,38 +23,41 @@ import LexRustRegex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '$'          { PT _ (TS _ 1)      }
-  '&&'         { PT _ (TS _ 2)      }
-  '*'          { PT _ (TS _ 3)      }
-  '*?'         { PT _ (TS _ 4)      }
-  '+'          { PT _ (TS _ 5)      }
-  '+?'         { PT _ (TS _ 6)      }
-  ','          { PT _ (TS _ 7)      }
-  '-'          { PT _ (TS _ 8)      }
-  '--'         { PT _ (TS _ 9)      }
-  '.'          { PT _ (TS _ 10)     }
-  '?'          { PT _ (TS _ 11)     }
-  '??'         { PT _ (TS _ 12)     }
-  'A'          { PT _ (TS _ 13)     }
-  'B'          { PT _ (TS _ 14)     }
-  '['          { PT _ (TS _ 15)     }
-  '[:^alpha:]' { PT _ (TS _ 16)     }
-  '[:alpha:]'  { PT _ (TS _ 17)     }
-  '\\'         { PT _ (TS _ 18)     }
-  '\\D'        { PT _ (TS _ 19)     }
-  '\\P'        { PT _ (TS _ 20)     }
-  '\\PN'       { PT _ (TS _ 21)     }
-  '\\d'        { PT _ (TS _ 22)     }
-  '\\p'        { PT _ (TS _ 23)     }
-  '\\pN'       { PT _ (TS _ 24)     }
-  ']'          { PT _ (TS _ 25)     }
-  '^'          { PT _ (TS _ 26)     }
-  'b'          { PT _ (TS _ 27)     }
-  'z'          { PT _ (TS _ 28)     }
-  '{'          { PT _ (TS _ 29)     }
-  '|'          { PT _ (TS _ 30)     }
-  '}'          { PT _ (TS _ 31)     }
-  '~~'         { PT _ (TS _ 32)     }
+  '\"'         { PT _ (TS _ 1)      }
+  '$'          { PT _ (TS _ 2)      }
+  '&&'         { PT _ (TS _ 3)      }
+  '('          { PT _ (TS _ 4)      }
+  ')'          { PT _ (TS _ 5)      }
+  '*'          { PT _ (TS _ 6)      }
+  '*?'         { PT _ (TS _ 7)      }
+  '+'          { PT _ (TS _ 8)      }
+  '+?'         { PT _ (TS _ 9)      }
+  ','          { PT _ (TS _ 10)     }
+  '-'          { PT _ (TS _ 11)     }
+  '--'         { PT _ (TS _ 12)     }
+  '.'          { PT _ (TS _ 13)     }
+  '?'          { PT _ (TS _ 14)     }
+  '??'         { PT _ (TS _ 15)     }
+  'A'          { PT _ (TS _ 16)     }
+  'B'          { PT _ (TS _ 17)     }
+  '['          { PT _ (TS _ 18)     }
+  '[:^alpha:]' { PT _ (TS _ 19)     }
+  '[:alpha:]'  { PT _ (TS _ 20)     }
+  '\\'         { PT _ (TS _ 21)     }
+  '\\D'        { PT _ (TS _ 22)     }
+  '\\P'        { PT _ (TS _ 23)     }
+  '\\PN'       { PT _ (TS _ 24)     }
+  '\\d'        { PT _ (TS _ 25)     }
+  '\\p'        { PT _ (TS _ 26)     }
+  '\\pN'       { PT _ (TS _ 27)     }
+  ']'          { PT _ (TS _ 28)     }
+  '^'          { PT _ (TS _ 29)     }
+  'b'          { PT _ (TS _ 30)     }
+  'z'          { PT _ (TS _ 31)     }
+  '{'          { PT _ (TS _ 32)     }
+  '|'          { PT _ (TS _ 33)     }
+  '}'          { PT _ (TS _ 34)     }
+  '~~'         { PT _ (TS _ 35)     }
   L_charac     { PT _ (TC $$)       }
   L_Number     { PT _ (T_Number $$) }
   L_Name       { PT _ (T_Name $$)   }
@@ -72,12 +75,14 @@ Name  : L_Name { AbsRustRegex.Name $1 }
 
 RustRegexGrammar :: { AbsRustRegex.RustRegexGrammar }
 RustRegexGrammar
-  : '[' Class ']' { AbsRustRegex.Class $2 }
-  | Class '|' Class { AbsRustRegex.Alt $1 $3 }
+  : Concat { AbsRustRegex.ConcatGrammar $1 }
+  | '[' Class ']' Repeat { AbsRustRegex.Class $2 $4 }
+  | RustRegexGrammar '|' RustRegexGrammar { AbsRustRegex.Alt $1 $3 }
+  | '(' RustRegexGrammar ')' Repeat { AbsRustRegex.Group $2 $4 }
 
 Class :: { AbsRustRegex.Class }
 Class
-  : Char { AbsRustRegex.Char $1 }
+  : Concat { AbsRustRegex.ConcatClass $1 }
   | ListClass { AbsRustRegex.Seq $1 }
   | '^' ListClass { AbsRustRegex.Except $2 }
   | Char '-' Char { AbsRustRegex.Range $1 $3 }
@@ -86,11 +91,19 @@ Class
   | Class '&&' Class { AbsRustRegex.Intersect $1 $3 }
   | Class '--' Class { AbsRustRegex.Subtract $1 $3 }
   | Class '~~' Class { AbsRustRegex.SymmetricDiff $1 $3 }
-  | '\\' Char { AbsRustRegex.Escape $2 }
   | '[' Class ']' { AbsRustRegex.Nest $2 }
 
 ListClass :: { [AbsRustRegex.Class] }
 ListClass : {- empty -} { [] } | Class ListClass { (:) $1 $2 }
+
+Concat :: { AbsRustRegex.Concat }
+Concat
+  : MyChar { AbsRustRegex.Char $1 }
+  | '\\' MyChar { AbsRustRegex.Escape $2 }
+  | Character { AbsRustRegex.Character $1 }
+
+ListConcat :: { [AbsRustRegex.Concat] }
+ListConcat : {- empty -} { [] } | Concat ListConcat { (:) $1 $2 }
 
 Character :: { AbsRustRegex.Character }
 Character
@@ -116,6 +129,7 @@ Repeat
   | '{' Number ',' Number '}' '?' { AbsRustRegex.LeastMostLazy $2 $4 }
   | '{' Number ',' '}' '?' { AbsRustRegex.LeastLazy $2 }
   | '{' Number '}' '?' { AbsRustRegex.ExactlyLazy $2 }
+  | {- empty -} { AbsRustRegex.No }
 
 Empty :: { AbsRustRegex.Empty }
 Empty
@@ -125,6 +139,12 @@ Empty
   | 'z' { AbsRustRegex.OnlyEnd }
   | 'b' { AbsRustRegex.UnicodeBoundary }
   | 'B' { AbsRustRegex.NotUnicodeBoundary }
+
+MyChar :: { AbsRustRegex.MyChar }
+MyChar
+  : '\"' { AbsRustRegex.Quote }
+  | '\\' { AbsRustRegex.EscapeChar }
+  | Char { AbsRustRegex.Other $1 }
 
 {
 

@@ -25,12 +25,14 @@ transName x = case x of
 
 transRustRegexGrammar :: AbsRustRegex.RustRegexGrammar -> Result
 transRustRegexGrammar x = case x of
-  AbsRustRegex.Class class_ -> failure x
-  AbsRustRegex.Alt class_1 class_2 -> failure x
+  AbsRustRegex.ConcatGrammar concat -> failure x
+  AbsRustRegex.Class class_ repeat -> failure x
+  AbsRustRegex.Alt rustregexgrammar1 rustregexgrammar2 -> failure x
+  AbsRustRegex.Group rustregexgrammar repeat -> failure x
 
 transClass :: AbsRustRegex.Class -> Result
 transClass x = case x of
-  AbsRustRegex.Char char -> failure x
+  AbsRustRegex.ConcatClass concat -> failure x
   AbsRustRegex.Seq classs -> failure x
   AbsRustRegex.Except classs -> failure x
   AbsRustRegex.Range char1 char2 -> failure x
@@ -39,8 +41,13 @@ transClass x = case x of
   AbsRustRegex.Intersect class_1 class_2 -> failure x
   AbsRustRegex.Subtract class_1 class_2 -> failure x
   AbsRustRegex.SymmetricDiff class_1 class_2 -> failure x
-  AbsRustRegex.Escape char -> failure x
   AbsRustRegex.Nest class_ -> failure x
+
+transConcat :: AbsRustRegex.Concat -> Result
+transConcat x = case x of
+  AbsRustRegex.Char mychar -> failure x
+  AbsRustRegex.Escape mychar -> failure x
+  AbsRustRegex.Character character -> failure x
 
 transCharacter :: AbsRustRegex.Character -> Result
 transCharacter x = case x of
@@ -66,6 +73,7 @@ transRepeat x = case x of
   AbsRustRegex.LeastMostLazy number1 number2 -> failure x
   AbsRustRegex.LeastLazy number -> failure x
   AbsRustRegex.ExactlyLazy number -> failure x
+  AbsRustRegex.No -> failure x
 
 transEmpty :: AbsRustRegex.Empty -> Result
 transEmpty x = case x of
@@ -75,3 +83,9 @@ transEmpty x = case x of
   AbsRustRegex.OnlyEnd -> failure x
   AbsRustRegex.UnicodeBoundary -> failure x
   AbsRustRegex.NotUnicodeBoundary -> failure x
+
+transMyChar :: AbsRustRegex.MyChar -> Result
+transMyChar x = case x of
+  AbsRustRegex.Quote -> failure x
+  AbsRustRegex.EscapeChar -> failure x
+  AbsRustRegex.Other char -> failure x

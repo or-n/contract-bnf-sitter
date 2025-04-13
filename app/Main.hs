@@ -5,15 +5,19 @@ module Main where
 -- import ErrM
 -- import PrintLBNF
 
-import AbsTreeSitter
-import ParTreeSitter
-import ErrM
-import PrintTreeSitter
+-- import AbsTreeSitter
+-- import ParTreeSitter
+-- import ErrM
+-- import PrintTreeSitter
 
-main :: IO ()
+import AbsRustRegex
+import ParRustRegex
+import ErrM
+import PrintRustRegex
+
 main = do
-  input <- readFile "samplesTreeSitter/quote.js"
-  case pTreeSitterGrammar (myLexer input) of
+  input <- readFile "samplesRustRegex/quote"
+  case pRustRegexGrammar (myLexer input) of
     Ok tree -> do
       putStrLn "Parsed successfully!"
       putStrLn (printTree tree)

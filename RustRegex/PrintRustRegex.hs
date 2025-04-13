@@ -143,12 +143,14 @@ instance Print AbsRustRegex.Name where
   prt _ (AbsRustRegex.Name i) = doc $ showString i
 instance Print AbsRustRegex.RustRegexGrammar where
   prt i = \case
-    AbsRustRegex.Class class_ -> prPrec i 0 (concatD [doc (showString "["), prt 0 class_, doc (showString "]")])
-    AbsRustRegex.Alt class_1 class_2 -> prPrec i 0 (concatD [prt 0 class_1, doc (showString "|"), prt 0 class_2])
+    AbsRustRegex.ConcatGrammar concat -> prPrec i 0 (concatD [prt 0 concat])
+    AbsRustRegex.Class class_ repeat -> prPrec i 0 (concatD [doc (showString "["), prt 0 class_, doc (showString "]"), prt 0 repeat])
+    AbsRustRegex.Alt rustregexgrammar1 rustregexgrammar2 -> prPrec i 0 (concatD [prt 0 rustregexgrammar1, doc (showString "|"), prt 0 rustregexgrammar2])
+    AbsRustRegex.Group rustregexgrammar repeat -> prPrec i 0 (concatD [doc (showString "("), prt 0 rustregexgrammar, doc (showString ")"), prt 0 repeat])
 
 instance Print AbsRustRegex.Class where
   prt i = \case
-    AbsRustRegex.Char c -> prPrec i 0 (concatD [prt 0 c])
+    AbsRustRegex.ConcatClass concat -> prPrec i 0 (concatD [prt 0 concat])
     AbsRustRegex.Seq classs -> prPrec i 0 (concatD [prt 0 classs])
     AbsRustRegex.Except classs -> prPrec i 0 (concatD [doc (showString "^"), prt 0 classs])
     AbsRustRegex.Range c1 c2 -> prPrec i 0 (concatD [prt 0 c1, doc (showString "-"), prt 0 c2])
@@ -157,10 +159,19 @@ instance Print AbsRustRegex.Class where
     AbsRustRegex.Intersect class_1 class_2 -> prPrec i 0 (concatD [prt 0 class_1, doc (showString "&&"), prt 0 class_2])
     AbsRustRegex.Subtract class_1 class_2 -> prPrec i 0 (concatD [prt 0 class_1, doc (showString "--"), prt 0 class_2])
     AbsRustRegex.SymmetricDiff class_1 class_2 -> prPrec i 0 (concatD [prt 0 class_1, doc (showString "~~"), prt 0 class_2])
-    AbsRustRegex.Escape c -> prPrec i 0 (concatD [doc (showString "\\"), prt 0 c])
     AbsRustRegex.Nest class_ -> prPrec i 0 (concatD [doc (showString "["), prt 0 class_, doc (showString "]")])
 
 instance Print [AbsRustRegex.Class] where
+  prt _ [] = concatD []
+  prt _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+
+instance Print AbsRustRegex.Concat where
+  prt i = \case
+    AbsRustRegex.Char mychar -> prPrec i 0 (concatD [prt 0 mychar])
+    AbsRustRegex.Escape mychar -> prPrec i 0 (concatD [doc (showString "\\"), prt 0 mychar])
+    AbsRustRegex.Character character -> prPrec i 0 (concatD [prt 0 character])
+
+instance Print [AbsRustRegex.Concat] where
   prt _ [] = concatD []
   prt _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
@@ -188,6 +199,7 @@ instance Print AbsRustRegex.Repeat where
     AbsRustRegex.LeastMostLazy number1 number2 -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number1, doc (showString ","), prt 0 number2, doc (showString "}"), doc (showString "?")])
     AbsRustRegex.LeastLazy number -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number, doc (showString ","), doc (showString "}"), doc (showString "?")])
     AbsRustRegex.ExactlyLazy number -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number, doc (showString "}"), doc (showString "?")])
+    AbsRustRegex.No -> prPrec i 0 (concatD [])
 
 instance Print AbsRustRegex.Empty where
   prt i = \case
@@ -197,3 +209,9 @@ instance Print AbsRustRegex.Empty where
     AbsRustRegex.OnlyEnd -> prPrec i 0 (concatD [doc (showString "z")])
     AbsRustRegex.UnicodeBoundary -> prPrec i 0 (concatD [doc (showString "b")])
     AbsRustRegex.NotUnicodeBoundary -> prPrec i 0 (concatD [doc (showString "B")])
+
+instance Print AbsRustRegex.MyChar where
+  prt i = \case
+    AbsRustRegex.Quote -> prPrec i 0 (concatD [doc (showString "\"")])
+    AbsRustRegex.EscapeChar -> prPrec i 0 (concatD [doc (showString "\\")])
+    AbsRustRegex.Other c -> prPrec i 0 (concatD [prt 0 c])

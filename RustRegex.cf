@@ -1,9 +1,11 @@
 entrypoints RustRegexGrammar ;
 
-Class. RustRegexGrammar ::= "[" Class "]" ;
-Alt. RustRegexGrammar ::= Class "|" Class ;
+ConcatGrammar. RustRegexGrammar ::= Concat ;
+Class. RustRegexGrammar ::= "[" Class "]" Repeat ;
+Alt. RustRegexGrammar ::= RustRegexGrammar "|" RustRegexGrammar ;
+Group. RustRegexGrammar ::= "(" RustRegexGrammar ")" Repeat ;
 
-Char. Class ::= Char ;
+ConcatClass. Class ::= Concat ;
 Seq. Class ::= [Class] ;
 Except. Class ::= "^" [Class] ;
 Range. Class ::= Char "-" Char ;
@@ -12,9 +14,13 @@ NotAscii. Class ::= "[:^alpha:]" ;
 Intersect. Class ::= Class "&&" Class ;
 Subtract. Class ::= Class "--" Class ;
 SymmetricDiff. Class ::= Class "~~" Class ;
-Escape. Class ::= "\\" Char ;
 Nest. Class ::= "[" Class "]" ;
 separator Class "" ;
+
+Char. Concat ::= MyChar ;
+Escape. Concat ::= "\\" MyChar ;
+Character. Concat ::= Character ;
+separator Concat "" ;
 
 AnyExceptNewline. Character ::= "." ;
 Digit. Character ::= "\\d" ;
@@ -36,6 +42,7 @@ Exactly. Repeat ::= "{" Number "}" ;
 LeastMostLazy. Repeat ::= "{" Number "," Number "}" "?" ;
 LeastLazy. Repeat ::= "{" Number "," "}" "?" ;
 ExactlyLazy. Repeat ::= "{" Number "}" "?" ;
+No. Repeat ::= ;
 
 Start. Empty ::= "^" ;
 End. Empty ::= "$" ;
@@ -43,6 +50,10 @@ OnlyStart. Empty ::= "A" ;
 OnlyEnd. Empty ::= "z" ;
 UnicodeBoundary. Empty ::= "b" ;
 NotUnicodeBoundary. Empty ::= "B" ;
+
+Quote. MyChar ::= "\"" ;
+EscapeChar. MyChar ::= "\\" ;
+Other. MyChar ::= Char ;
 
 token Number digit+ ;
 token Name letter+ ;

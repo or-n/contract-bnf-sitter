@@ -32,13 +32,14 @@ The reserved words used in RustRegex are the following:
   | ``A`` | ``B`` | ``b`` | ``z``
 
 The symbols used in RustRegex are the following:
-  | [ | ] | | | ^
-  | - | [:alpha:] | [:^alpha:] | &&
-  | -- | ~~ | \ | .
-  | \d | \D | \pN | \PN
-  | \p | { | } | \P
-  | * | + | ? | *?
-  | +? | ?? | , | $
+  | [ | ] | | | (
+  | ) | ^ | - | [:alpha:]
+  | [:^alpha:] | && | -- | ~~
+  | \ | . | \d | \D
+  | \pN | \PN | \p | {
+  | } | \P | * | +
+  | ? | *? | +? | ??
+  | , | $ | " |
 
 ===Comments===
 There are no single-line comments in the grammar.There are no multiple-line comments in the grammar.
@@ -49,9 +50,11 @@ The symbols -> (production),  **|**  (union)
 and **eps** (empty rule) belong to the BNF notation.
 All other symbols are terminals.
 
-  | //RustRegexGrammar// | -> | ``[`` //Class// ``]``
-  |  |  **|**  | //Class// ``|`` //Class//
-  | //Class// | -> | //Char//
+  | //RustRegexGrammar// | -> | //Concat//
+  |  |  **|**  | ``[`` //Class// ``]`` //Repeat//
+  |  |  **|**  | //RustRegexGrammar// ``|`` //RustRegexGrammar//
+  |  |  **|**  | ``(`` //RustRegexGrammar// ``)`` //Repeat//
+  | //Class// | -> | //Concat//
   |  |  **|**  | //[Class]//
   |  |  **|**  | ``^`` //[Class]//
   |  |  **|**  | //Char// ``-`` //Char//
@@ -60,10 +63,14 @@ All other symbols are terminals.
   |  |  **|**  | //Class// ``&&`` //Class//
   |  |  **|**  | //Class// ``--`` //Class//
   |  |  **|**  | //Class// ``~~`` //Class//
-  |  |  **|**  | ``\`` //Char//
   |  |  **|**  | ``[`` //Class// ``]``
   | //[Class]// | -> | **eps**
   |  |  **|**  | //Class// //[Class]//
+  | //Concat// | -> | //MyChar//
+  |  |  **|**  | ``\`` //MyChar//
+  |  |  **|**  | //Character//
+  | //[Concat]// | -> | **eps**
+  |  |  **|**  | //Concat// //[Concat]//
   | //Character// | -> | ``.``
   |  |  **|**  | ``\d``
   |  |  **|**  | ``\D``
@@ -83,12 +90,16 @@ All other symbols are terminals.
   |  |  **|**  | ``{`` //Number// ``,`` //Number// ``}`` ``?``
   |  |  **|**  | ``{`` //Number// ``,`` ``}`` ``?``
   |  |  **|**  | ``{`` //Number// ``}`` ``?``
+  |  |  **|**  | **eps**
   | //Empty// | -> | ``^``
   |  |  **|**  | ``$``
   |  |  **|**  | ``A``
   |  |  **|**  | ``z``
   |  |  **|**  | ``b``
   |  |  **|**  | ``B``
+  | //MyChar// | -> | ``"``
+  |  |  **|**  | ``\``
+  |  |  **|**  | //Char//
 
 
 

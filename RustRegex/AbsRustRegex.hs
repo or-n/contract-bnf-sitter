@@ -10,11 +10,15 @@ import Prelude (Char, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
-data RustRegexGrammar = Class Class | Alt Class Class
+data RustRegexGrammar
+    = ConcatGrammar Concat
+    | Class Class Repeat
+    | Alt RustRegexGrammar RustRegexGrammar
+    | Group RustRegexGrammar Repeat
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Class
-    = Char Char
+    = ConcatClass Concat
     | Seq [Class]
     | Except [Class]
     | Range Char Char
@@ -23,8 +27,10 @@ data Class
     | Intersect Class Class
     | Subtract Class Class
     | SymmetricDiff Class Class
-    | Escape Char
     | Nest Class
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data Concat = Char MyChar | Escape MyChar | Character Character
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Character
@@ -50,6 +56,7 @@ data Repeat
     | LeastMostLazy Number Number
     | LeastLazy Number
     | ExactlyLazy Number
+    | No
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Empty
@@ -59,6 +66,9 @@ data Empty
     | OnlyEnd
     | UnicodeBoundary
     | NotUnicodeBoundary
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data MyChar = Quote | EscapeChar | Other Char
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Number = Number String
