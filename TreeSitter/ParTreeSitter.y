@@ -41,10 +41,11 @@ import LexTreeSitter
   'name'      { PT _ (TS _ 16) }
   'new'       { PT _ (TS _ 17) }
   'repeat'    { PT _ (TS _ 18) }
-  'rules'     { PT _ (TS _ 19) }
-  'seq'       { PT _ (TS _ 20) }
-  '{'         { PT _ (TS _ 21) }
-  '}'         { PT _ (TS _ 22) }
+  'repeat1'   { PT _ (TS _ 19) }
+  'rules'     { PT _ (TS _ 20) }
+  'seq'       { PT _ (TS _ 21) }
+  '{'         { PT _ (TS _ 22) }
+  '}'         { PT _ (TS _ 23) }
   L_quoted    { PT _ (TL $$)   }
   L_Id        { PT _ (T_Id $$) }
 
@@ -91,6 +92,7 @@ Expression
   : 'choice' '(' ListExpression ')' { AbsTreeSitter.Choice $3 }
   | 'seq' '(' ListExpression ')' { AbsTreeSitter.Seq $3 }
   | 'repeat' '(' Expression ')' { AbsTreeSitter.Repeat $3 }
+  | 'repeat1' '(' Expression ')' { AbsTreeSitter.Repeat1 $3 }
   | '$' '.' Id { AbsTreeSitter.Symbol $3 }
   | Id { AbsTreeSitter.Const $1 }
   | String { AbsTreeSitter.Literal $1 }

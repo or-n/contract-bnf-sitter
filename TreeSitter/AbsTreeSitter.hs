@@ -35,6 +35,7 @@ data Expression
     = Choice [Expression]
     | Seq [Expression]
     | Repeat Expression
+    | Repeat1 Expression
     | Symbol Id
     | Const Id
     | Literal String

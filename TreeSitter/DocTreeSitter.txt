@@ -28,7 +28,7 @@ The set of reserved words is the set of terminals appearing in the grammar. Thos
 The reserved words used in TreeSitter are the following:
   | ``RustRegex`` | ``choice`` | ``const`` | ``exports``
   | ``grammar`` | ``module`` | ``name`` | ``new``
-  | ``repeat`` | ``rules`` | ``seq`` |
+  | ``repeat`` | ``repeat1`` | ``rules`` | ``seq``
 
 The symbols used in TreeSitter are the following:
   | . | = | ( | {
@@ -58,6 +58,7 @@ All other symbols are terminals.
   | //Expression// | -> | ``choice`` ``(`` //[Expression]// ``)``
   |  |  **|**  | ``seq`` ``(`` //[Expression]// ``)``
   |  |  **|**  | ``repeat`` ``(`` //Expression// ``)``
+  |  |  **|**  | ``repeat1`` ``(`` //Expression// ``)``
   |  |  **|**  | ``$`` ``.`` //Id//
   |  |  **|**  | //Id//
   |  |  **|**  | //String//

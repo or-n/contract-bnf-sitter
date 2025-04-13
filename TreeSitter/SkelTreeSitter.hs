@@ -52,6 +52,7 @@ transExpression x = case x of
   AbsTreeSitter.Choice expressions -> failure x
   AbsTreeSitter.Seq expressions -> failure x
   AbsTreeSitter.Repeat expression -> failure x
+  AbsTreeSitter.Repeat1 expression -> failure x
   AbsTreeSitter.Symbol id -> failure x
   AbsTreeSitter.Const id -> failure x
   AbsTreeSitter.Literal string -> failure x

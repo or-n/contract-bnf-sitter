@@ -180,6 +180,7 @@ instance Print AbsTreeSitter.Expression where
     AbsTreeSitter.Choice expressions -> prPrec i 0 (concatD [doc (showString "choice"), doc (showString "("), prt 0 expressions, doc (showString ")")])
     AbsTreeSitter.Seq expressions -> prPrec i 0 (concatD [doc (showString "seq"), doc (showString "("), prt 0 expressions, doc (showString ")")])
     AbsTreeSitter.Repeat expression -> prPrec i 0 (concatD [doc (showString "repeat"), doc (showString "("), prt 0 expression, doc (showString ")")])
+    AbsTreeSitter.Repeat1 expression -> prPrec i 0 (concatD [doc (showString "repeat1"), doc (showString "("), prt 0 expression, doc (showString ")")])
     AbsTreeSitter.Symbol id_ -> prPrec i 0 (concatD [doc (showString "$"), doc (showString "."), prt 0 id_])
     AbsTreeSitter.Const id_ -> prPrec i 0 (concatD [prt 0 id_])
     AbsTreeSitter.Literal str -> prPrec i 0 (concatD [printString str])

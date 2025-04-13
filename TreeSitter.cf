@@ -22,6 +22,7 @@ terminator Rule "," ;
 Choice. Expression ::= "choice" "(" [Expression] ")" ;
 Seq. Expression ::= "seq" "(" [Expression] ")" ;
 Repeat. Expression ::= "repeat" "(" Expression ")" ;
+Repeat1. Expression ::= "repeat1" "(" Expression ")" ;
 Symbol. Expression ::= "$" "." Id ;
 Const. Expression ::= Id ;
 Literal. Expression ::= String ;
