@@ -23,33 +23,49 @@ import LexRustRegex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '&&'         { PT _ (TS _ 1)    }
-  '-'          { PT _ (TS _ 2)    }
-  '--'         { PT _ (TS _ 3)    }
-  '.'          { PT _ (TS _ 4)    }
-  '['          { PT _ (TS _ 5)    }
-  '[:^alpha:]' { PT _ (TS _ 6)    }
-  '[:alpha:]'  { PT _ (TS _ 7)    }
-  '\\'         { PT _ (TS _ 8)    }
-  '\\D'        { PT _ (TS _ 9)    }
-  '\\P'        { PT _ (TS _ 10)   }
-  '\\PN'       { PT _ (TS _ 11)   }
-  '\\d'        { PT _ (TS _ 12)   }
-  '\\p'        { PT _ (TS _ 13)   }
-  '\\pN'       { PT _ (TS _ 14)   }
-  ']'          { PT _ (TS _ 15)   }
-  '^'          { PT _ (TS _ 16)   }
-  '{'          { PT _ (TS _ 17)   }
-  '|'          { PT _ (TS _ 18)   }
-  '}'          { PT _ (TS _ 19)   }
-  '~~'         { PT _ (TS _ 20)   }
-  L_charac     { PT _ (TC $$)     }
-  L_Name       { PT _ (T_Name $$) }
+  '$'          { PT _ (TS _ 1)      }
+  '&&'         { PT _ (TS _ 2)      }
+  '*'          { PT _ (TS _ 3)      }
+  '*?'         { PT _ (TS _ 4)      }
+  '+'          { PT _ (TS _ 5)      }
+  '+?'         { PT _ (TS _ 6)      }
+  ','          { PT _ (TS _ 7)      }
+  '-'          { PT _ (TS _ 8)      }
+  '--'         { PT _ (TS _ 9)      }
+  '.'          { PT _ (TS _ 10)     }
+  '?'          { PT _ (TS _ 11)     }
+  '??'         { PT _ (TS _ 12)     }
+  'A'          { PT _ (TS _ 13)     }
+  'B'          { PT _ (TS _ 14)     }
+  '['          { PT _ (TS _ 15)     }
+  '[:^alpha:]' { PT _ (TS _ 16)     }
+  '[:alpha:]'  { PT _ (TS _ 17)     }
+  '\\'         { PT _ (TS _ 18)     }
+  '\\D'        { PT _ (TS _ 19)     }
+  '\\P'        { PT _ (TS _ 20)     }
+  '\\PN'       { PT _ (TS _ 21)     }
+  '\\d'        { PT _ (TS _ 22)     }
+  '\\p'        { PT _ (TS _ 23)     }
+  '\\pN'       { PT _ (TS _ 24)     }
+  ']'          { PT _ (TS _ 25)     }
+  '^'          { PT _ (TS _ 26)     }
+  'b'          { PT _ (TS _ 27)     }
+  'z'          { PT _ (TS _ 28)     }
+  '{'          { PT _ (TS _ 29)     }
+  '|'          { PT _ (TS _ 30)     }
+  '}'          { PT _ (TS _ 31)     }
+  '~~'         { PT _ (TS _ 32)     }
+  L_charac     { PT _ (TC $$)       }
+  L_Number     { PT _ (T_Number $$) }
+  L_Name       { PT _ (T_Name $$)   }
 
 %%
 
 Char    :: { Char }
 Char     : L_charac { (read $1) :: Char }
+
+Number :: { AbsRustRegex.Number }
+Number  : L_Number { AbsRustRegex.Number $1 }
 
 Name :: { AbsRustRegex.Name }
 Name  : L_Name { AbsRustRegex.Name $1 }
@@ -85,6 +101,30 @@ Character
   | '\\PN' { AbsRustRegex.NotUnicodeLetter }
   | '\\p' '{' Name '}' { AbsRustRegex.LetterClass $3 }
   | '\\P' '{' Name '}' { AbsRustRegex.NotLetterClass $3 }
+
+Repeat :: { AbsRustRegex.Repeat }
+Repeat
+  : '*' { AbsRustRegex.Many }
+  | '+' { AbsRustRegex.Some }
+  | '?' { AbsRustRegex.Optional }
+  | '*?' { AbsRustRegex.ManyLazy }
+  | '+?' { AbsRustRegex.SomeLazy }
+  | '??' { AbsRustRegex.OptionalLazy }
+  | '{' Number ',' Number '}' { AbsRustRegex.LeastMost $2 $4 }
+  | '{' Number ',' '}' { AbsRustRegex.Least $2 }
+  | '{' Number '}' { AbsRustRegex.Exactly $2 }
+  | '{' Number ',' Number '}' '?' { AbsRustRegex.LeastMostLazy $2 $4 }
+  | '{' Number ',' '}' '?' { AbsRustRegex.LeastLazy $2 }
+  | '{' Number '}' '?' { AbsRustRegex.ExactlyLazy $2 }
+
+Empty :: { AbsRustRegex.Empty }
+Empty
+  : '^' { AbsRustRegex.Start }
+  | '$' { AbsRustRegex.End }
+  | 'A' { AbsRustRegex.OnlyStart }
+  | 'z' { AbsRustRegex.OnlyEnd }
+  | 'b' { AbsRustRegex.UnicodeBoundary }
+  | 'B' { AbsRustRegex.NotUnicodeBoundary }
 
 {
 

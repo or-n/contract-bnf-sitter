@@ -15,6 +15,10 @@ type Result = Err String
 failure :: Show a => a -> Result
 failure x = Left $ "Undefined case: " ++ show x
 
+transNumber :: AbsRustRegex.Number -> Result
+transNumber x = case x of
+  AbsRustRegex.Number string -> failure x
+
 transName :: AbsRustRegex.Name -> Result
 transName x = case x of
   AbsRustRegex.Name string -> failure x
@@ -47,3 +51,27 @@ transCharacter x = case x of
   AbsRustRegex.NotUnicodeLetter -> failure x
   AbsRustRegex.LetterClass name -> failure x
   AbsRustRegex.NotLetterClass name -> failure x
+
+transRepeat :: AbsRustRegex.Repeat -> Result
+transRepeat x = case x of
+  AbsRustRegex.Many -> failure x
+  AbsRustRegex.Some -> failure x
+  AbsRustRegex.Optional -> failure x
+  AbsRustRegex.ManyLazy -> failure x
+  AbsRustRegex.SomeLazy -> failure x
+  AbsRustRegex.OptionalLazy -> failure x
+  AbsRustRegex.LeastMost number1 number2 -> failure x
+  AbsRustRegex.Least number -> failure x
+  AbsRustRegex.Exactly number -> failure x
+  AbsRustRegex.LeastMostLazy number1 number2 -> failure x
+  AbsRustRegex.LeastLazy number -> failure x
+  AbsRustRegex.ExactlyLazy number -> failure x
+
+transEmpty :: AbsRustRegex.Empty -> Result
+transEmpty x = case x of
+  AbsRustRegex.Start -> failure x
+  AbsRustRegex.End -> failure x
+  AbsRustRegex.OnlyStart -> failure x
+  AbsRustRegex.OnlyEnd -> failure x
+  AbsRustRegex.UnicodeBoundary -> failure x
+  AbsRustRegex.NotUnicodeBoundary -> failure x

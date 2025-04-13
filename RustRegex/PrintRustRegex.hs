@@ -137,6 +137,8 @@ instance Print Integer where
 instance Print Double where
   prt _ x = doc (shows x)
 
+instance Print AbsRustRegex.Number where
+  prt _ (AbsRustRegex.Number i) = doc $ showString i
 instance Print AbsRustRegex.Name where
   prt _ (AbsRustRegex.Name i) = doc $ showString i
 instance Print AbsRustRegex.RustRegexGrammar where
@@ -171,3 +173,27 @@ instance Print AbsRustRegex.Character where
     AbsRustRegex.NotUnicodeLetter -> prPrec i 0 (concatD [doc (showString "\\PN")])
     AbsRustRegex.LetterClass name -> prPrec i 0 (concatD [doc (showString "\\p"), doc (showString "{"), prt 0 name, doc (showString "}")])
     AbsRustRegex.NotLetterClass name -> prPrec i 0 (concatD [doc (showString "\\P"), doc (showString "{"), prt 0 name, doc (showString "}")])
+
+instance Print AbsRustRegex.Repeat where
+  prt i = \case
+    AbsRustRegex.Many -> prPrec i 0 (concatD [doc (showString "*")])
+    AbsRustRegex.Some -> prPrec i 0 (concatD [doc (showString "+")])
+    AbsRustRegex.Optional -> prPrec i 0 (concatD [doc (showString "?")])
+    AbsRustRegex.ManyLazy -> prPrec i 0 (concatD [doc (showString "*?")])
+    AbsRustRegex.SomeLazy -> prPrec i 0 (concatD [doc (showString "+?")])
+    AbsRustRegex.OptionalLazy -> prPrec i 0 (concatD [doc (showString "??")])
+    AbsRustRegex.LeastMost number1 number2 -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number1, doc (showString ","), prt 0 number2, doc (showString "}")])
+    AbsRustRegex.Least number -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number, doc (showString ","), doc (showString "}")])
+    AbsRustRegex.Exactly number -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number, doc (showString "}")])
+    AbsRustRegex.LeastMostLazy number1 number2 -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number1, doc (showString ","), prt 0 number2, doc (showString "}"), doc (showString "?")])
+    AbsRustRegex.LeastLazy number -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number, doc (showString ","), doc (showString "}"), doc (showString "?")])
+    AbsRustRegex.ExactlyLazy number -> prPrec i 0 (concatD [doc (showString "{"), prt 0 number, doc (showString "}"), doc (showString "?")])
+
+instance Print AbsRustRegex.Empty where
+  prt i = \case
+    AbsRustRegex.Start -> prPrec i 0 (concatD [doc (showString "^")])
+    AbsRustRegex.End -> prPrec i 0 (concatD [doc (showString "$")])
+    AbsRustRegex.OnlyStart -> prPrec i 0 (concatD [doc (showString "A")])
+    AbsRustRegex.OnlyEnd -> prPrec i 0 (concatD [doc (showString "z")])
+    AbsRustRegex.UnicodeBoundary -> prPrec i 0 (concatD [doc (showString "b")])
+    AbsRustRegex.NotUnicodeBoundary -> prPrec i 0 (concatD [doc (showString "B")])

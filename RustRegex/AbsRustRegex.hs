@@ -37,6 +37,33 @@ data Character
     | NotLetterClass Name
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
+data Repeat
+    = Many
+    | Some
+    | Optional
+    | ManyLazy
+    | SomeLazy
+    | OptionalLazy
+    | LeastMost Number Number
+    | Least Number
+    | Exactly Number
+    | LeastMostLazy Number Number
+    | LeastLazy Number
+    | ExactlyLazy Number
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data Empty
+    = Start
+    | End
+    | OnlyStart
+    | OnlyEnd
+    | UnicodeBoundary
+    | NotUnicodeBoundary
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+newtype Number = Number String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, Data.String.IsString)
+
 newtype Name = Name String
   deriving (C.Eq, C.Ord, C.Show, C.Read, Data.String.IsString)
 

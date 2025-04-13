@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \[ | \] | \| | \^ | \- | \[ \: "alpha" \: \] | \[ \: \^ "alpha" \: \] | \& \& | \- \- | \~ \~ | \\ | \. | \\ "d" | \\ "D" | \\ "pN" | \\ "PN" | \\ "p" | \{ | \} | \\ "P"
+@rsyms = \[ | \] | \| | \^ | \- | \[ \: "alpha" \: \] | \[ \: \^ "alpha" \: \] | \& \& | \- \- | \~ \~ | \\ | \. | \\ "d" | \\ "D" | \\ "pN" | \\ "PN" | \\ "p" | \{ | \} | \\ "P" | \* | \+ | \? | \* \? | \+ \? | \? \? | \, | \$
 
 :-
 
@@ -38,6 +38,10 @@ $white+ ;
 -- Symbols
 @rsyms
     { tok (eitherResIdent TV) }
+
+-- token Number
+$d +
+    { tok (eitherResIdent T_Number) }
 
 -- token Name
 $l +
@@ -64,6 +68,7 @@ data Tok
   | TV !String                    -- ^ Identifier.
   | TD !String                    -- ^ Float literal.
   | TC !String                    -- ^ Character literal.
+  | T_Number !String
   | T_Name !String
   deriving (Eq, Show, Ord)
 
@@ -127,6 +132,7 @@ tokenText t = case t of
   PT _ (TD s)   -> s
   PT _ (TC s)   -> s
   Err _         -> "#error"
+  PT _ (T_Number s) -> s
   PT _ (T_Name s) -> s
 
 -- | Convert a token to a string.
@@ -154,13 +160,21 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "\\PN" 11
-    (b "[:^alpha:]" 6
-       (b "--" 3 (b "-" 2 (b "&&" 1 N N) N) (b "[" 5 (b "." 4 N N) N))
-       (b "\\D" 9 (b "\\" 8 (b "[:alpha:]" 7 N N) N) (b "\\P" 10 N N)))
-    (b "^" 16
-       (b "\\pN" 14 (b "\\p" 13 (b "\\d" 12 N N) N) (b "]" 15 N N))
-       (b "}" 19 (b "|" 18 (b "{" 17 N N) N) (b "~~" 20 N N)))
+  b "[:alpha:]" 17
+    (b "--" 9
+       (b "+" 5
+          (b "*" 3 (b "&&" 2 (b "$" 1 N N) N) (b "*?" 4 N N))
+          (b "," 7 (b "+?" 6 N N) (b "-" 8 N N)))
+       (b "A" 13
+          (b "?" 11 (b "." 10 N N) (b "??" 12 N N))
+          (b "[" 15 (b "B" 14 N N) (b "[:^alpha:]" 16 N N))))
+    (b "]" 25
+       (b "\\PN" 21
+          (b "\\D" 19 (b "\\" 18 N N) (b "\\P" 20 N N))
+          (b "\\p" 23 (b "\\d" 22 N N) (b "\\pN" 24 N N)))
+       (b "{" 29
+          (b "b" 27 (b "^" 26 N N) (b "z" 28 N N))
+          (b "}" 31 (b "|" 30 N N) (b "~~" 32 N N))))
   where
   b s n = B bs (TS bs n)
     where

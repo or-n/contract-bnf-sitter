@@ -17,6 +17,10 @@ Character literals //Char// have the form
 
 
 
+
+Number literals are recognized by the regular expression
+`````digit+`````
+
 Name literals are recognized by the regular expression
 `````letter+`````
 
@@ -25,8 +29,7 @@ Name literals are recognized by the regular expression
 The set of reserved words is the set of terminals appearing in the grammar. Those reserved words that consist of non-letter characters are called symbols, and they are treated in a different way from those that are similar to identifiers. The lexer follows rules familiar from languages like Haskell, C, and Java, including longest match and spacing conventions.
 
 The reserved words used in RustRegex are the following:
-
-There are no reserved words in RustRegex.
+  | ``A`` | ``B`` | ``b`` | ``z``
 
 The symbols used in RustRegex are the following:
   | [ | ] | | | ^
@@ -34,6 +37,8 @@ The symbols used in RustRegex are the following:
   | -- | ~~ | \ | .
   | \d | \D | \pN | \PN
   | \p | { | } | \P
+  | * | + | ? | *?
+  | +? | ?? | , | $
 
 ===Comments===
 There are no single-line comments in the grammar.There are no multiple-line comments in the grammar.
@@ -66,6 +71,24 @@ All other symbols are terminals.
   |  |  **|**  | ``\PN``
   |  |  **|**  | ``\p`` ``{`` //Name// ``}``
   |  |  **|**  | ``\P`` ``{`` //Name// ``}``
+  | //Repeat// | -> | ``*``
+  |  |  **|**  | ``+``
+  |  |  **|**  | ``?``
+  |  |  **|**  | ``*?``
+  |  |  **|**  | ``+?``
+  |  |  **|**  | ``??``
+  |  |  **|**  | ``{`` //Number// ``,`` //Number// ``}``
+  |  |  **|**  | ``{`` //Number// ``,`` ``}``
+  |  |  **|**  | ``{`` //Number// ``}``
+  |  |  **|**  | ``{`` //Number// ``,`` //Number// ``}`` ``?``
+  |  |  **|**  | ``{`` //Number// ``,`` ``}`` ``?``
+  |  |  **|**  | ``{`` //Number// ``}`` ``?``
+  | //Empty// | -> | ``^``
+  |  |  **|**  | ``$``
+  |  |  **|**  | ``A``
+  |  |  **|**  | ``z``
+  |  |  **|**  | ``b``
+  |  |  **|**  | ``B``
 
 
 

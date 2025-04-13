@@ -24,4 +24,25 @@ NotUnicodeLetter. Character ::= "\\PN" ;
 LetterClass. Character ::= "\\p" "{" Name "}" ;
 NotLetterClass. Character ::= "\\P" "{" Name "}" ;
 
+Many. Repeat ::= "*" ;
+Some. Repeat ::= "+" ;
+Optional. Repeat ::= "?" ;
+ManyLazy. Repeat ::= "*?" ;
+SomeLazy. Repeat ::= "+?" ;
+OptionalLazy. Repeat ::= "??" ;
+LeastMost. Repeat ::= "{" Number "," Number "}" ;
+Least. Repeat ::= "{" Number "," "}" ;
+Exactly. Repeat ::= "{" Number "}" ;
+LeastMostLazy. Repeat ::= "{" Number "," Number "}" "?" ;
+LeastLazy. Repeat ::= "{" Number "," "}" "?" ;
+ExactlyLazy. Repeat ::= "{" Number "}" "?" ;
+
+Start. Empty ::= "^" ;
+End. Empty ::= "$" ;
+OnlyStart. Empty ::= "A" ;
+OnlyEnd. Empty ::= "z" ;
+UnicodeBoundary. Empty ::= "b" ;
+NotUnicodeBoundary. Empty ::= "B" ;
+
+token Number digit+ ;
 token Name letter+ ;
