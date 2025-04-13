@@ -18,11 +18,11 @@ import System.Environment ( getArgs )
 import System.Exit        ( exitFailure )
 import Control.Monad      ( when )
 
-import AbsLBNF   ()
-import LexLBNF   ( Token, mkPosToken )
-import ParLBNF   ( pLBNFGrammar, myLexer )
-import PrintLBNF ( Print, printTree )
-import SkelLBNF  ()
+import AbsTreeSitter   ()
+import LexTreeSitter   ( Token, mkPosToken )
+import ParTreeSitter   ( pTreeSitterGrammar, myLexer )
+import PrintTreeSitter ( Print, printTree )
+import SkelTreeSitter  ()
 
 type Err        = Either String
 type ParseFun a = [Token] -> Err a
@@ -70,7 +70,7 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    []         -> getContents >>= run 2 pLBNFGrammar
-    "-s":fs    -> mapM_ (runFile 0 pLBNFGrammar) fs
-    fs         -> mapM_ (runFile 2 pLBNFGrammar) fs
+    []         -> getContents >>= run 2 pTreeSitterGrammar
+    "-s":fs    -> mapM_ (runFile 0 pTreeSitterGrammar) fs
+    fs         -> mapM_ (runFile 2 pTreeSitterGrammar) fs
 

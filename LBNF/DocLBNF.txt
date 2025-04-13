@@ -56,7 +56,7 @@ The symbols -> (production),  **|**  (union)
 and **eps** (empty rule) belong to the BNF notation.
 All other symbols are terminals.
 
-  | //Grammar// | -> | //[Def]//
+  | //LBNFGrammar// | -> | //[Def]//
   | //[Def]// | -> | **eps**
   |  |  **|**  | //Def// ``;`` //[Def]//
   | //[Item]// | -> | **eps**

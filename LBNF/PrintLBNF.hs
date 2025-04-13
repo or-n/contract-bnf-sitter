@@ -139,7 +139,7 @@ instance Print Double where
 
 instance Print AbsLBNF.Ident where
   prt _ (AbsLBNF.Ident i) = doc $ showString i
-instance Print AbsLBNF.Grammar where
+instance Print AbsLBNF.LBNFGrammar where
   prt i = \case
     AbsLBNF.MkGrammar defs -> prPrec i 0 (concatD [prt 0 defs])
 

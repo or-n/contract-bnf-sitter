@@ -19,8 +19,8 @@ transIdent :: AbsLBNF.Ident -> Result
 transIdent x = case x of
   AbsLBNF.Ident string -> failure x
 
-transGrammar :: AbsLBNF.Grammar -> Result
-transGrammar x = case x of
+transLBNFGrammar :: AbsLBNF.LBNFGrammar -> Result
+transLBNFGrammar x = case x of
   AbsLBNF.MkGrammar defs -> failure x
 
 transDef :: AbsLBNF.Def -> Result

@@ -1,0 +1,33 @@
+comment "//" ;
+comment "/*" "*/" ;
+
+entrypoints TreeSitterGrammar ;
+
+TreeSitterGrammar. TreeSitterGrammar ::=
+	Preamble "module" "." "exports" "=" "grammar" "(" "{" GrammarBody "}" ")" ";" ;
+
+Preamble. Preamble ::= [ConstDecl] ;
+
+ConstDecl. ConstDecl ::= "const" Id "=" String ;
+terminator ConstDecl ";" ;
+
+GrammarBody. GrammarBody ::= Name "," Rules "," ;
+
+Name. Name ::= "name" ":" String ;
+Rules. Rules ::= "rules" ":" "{" [Rule] "}" ;
+
+Rule. Rule ::= Id ":" "$" "=>" Expression ;
+terminator Rule "," ;
+
+Choice. Expression ::= "choice" "(" [Expression] ")" ;
+Seq. Expression ::= "seq" "(" [Expression] ")" ;
+Repeat. Expression ::= "repeat" "(" Expression ")" ;
+Symbol. Expression ::= "$" "." Id ;
+Const. Expression ::= Id ;
+Literal. Expression ::= String ;
+Regex. Expression ::= "new" "RustRegex" "(" Regex ")" ;
+separator Expression "," ;
+
+Todo. Regex ::= "todo" ;
+
+token Id ((letter | '_') (letter | digit | '_')*) ;

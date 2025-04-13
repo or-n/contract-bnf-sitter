@@ -25,12 +25,20 @@ executable bnf-sitter
       PrintLBNF
       SkelLBNF
       LexLBNF
+      AbsTreeSitter
+      ParTreeSitter
+      ErrM
+      PrintTreeSitter
+      SkelTreeSitter
+      LexTreeSitter
     -- other-extensions:
     build-depends:
         base ^>=4.18.2.1,
-        -- happy:happy,
         array
-    hs-source-dirs:   app, LBNF
+    hs-source-dirs:
+        app,
+        LBNF,
+        TreeSitter
     build-tool-depends:
         happy:happy,
         alex:alex
