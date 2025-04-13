@@ -28,30 +28,22 @@ translate =
   . map translateDef
   . definitions
 
-constDecl (literal, name) = TreeSitter.ConstDecl (TreeSitter.Id name) literal 
+constDecl (literal, id) = TreeSitter.ConstDecl id literal 
 
 consts rules =
   let
-    literalGroups = map (\(literal, count) -> (literal, constName literal)) 
+    shouldMkConst (literal, count) = count >= 2
+    literalGroups = map (\(literal, count) -> (literal, constId literal)) 
       $ filter shouldMkConst
-      $ map groupCount
+      $ map (\xs@(x: _), (x, length xs))
       $ group
       $ concatMap literals rules
-    newRules = map (\rule -> foldr replaceLiteralName rule literalGroups) rules
+    (literal, id) -> replaceLiteral literal (TreeSitter.Const id)
+    replaceInRule rule = foldr replaceLiteralId rule literalGroups
   in
-    (literalGroups, newRules)
+    (literalGroups, map replaceInRule rules)
 
-groupCount groups@(x : _) = (x, length groups) 
-
-shouldMkConst (literal, count) = count >= 2
-
-replaceLiteralName (literal, name) =
-  let
-    c = TreeSitter.Const (TreeSitter.Id name)
-  in
-    replaceLiteral literal c
-
-constName literal = literal
+constId literal = TreeSitter.Id literal
 
 translateDef = \case
   LBNF.Rule _label cat items -> TreeSitter.Rule

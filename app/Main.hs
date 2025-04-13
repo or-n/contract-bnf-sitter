@@ -34,7 +34,7 @@ samplesTreeSitter =
 
 data Input = LBNF | TreeSitter
 
-main = go TreeSitter "const"
+main = go LBNF "const"
 
 go inputType sampleId = do
   let dirLBNF = "samplesLBNF/"
