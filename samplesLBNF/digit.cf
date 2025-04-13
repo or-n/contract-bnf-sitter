@@ -1,0 +1,13 @@
+
+Mk. Grammar ::= Digit ;
+
+Zero. Digit ::= "0" ;
+One. Digit ::= "1" ;
+Two. Digit ::= "2" ;
+Three. Digit ::= "3" ;
+Four. Digit ::= "4" ;
+Five. Digit ::= "5" ;
+Six. Digit ::= "6" ;
+Seven. Digit ::= "7" ;
+Eight. Digit ::= "8" ;
+Nine. Digit ::= "9" ;

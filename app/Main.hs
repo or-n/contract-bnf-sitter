@@ -17,9 +17,11 @@ import qualified PrintRustRegex as RustRegex
 import Translate
 
 main = do
-  input <- readFile "samplesRustRegex/quote"
-  case RustRegex.pGrammar (RustRegex.myLexer input) of
+  input <- readFile "samplesLBNF/digit.cf"
+  case LBNF.pGrammar (LBNF.myLexer input) of
     Ok tree -> do
       putStrLn "Parsed successfully!"
-      putStrLn (RustRegex.printTree tree)
+      putStrLn (LBNF.printTree tree)
+      let t = translate tree
+      putStrLn (TreeSitter.printTree t)
     Bad err -> putStrLn $ "Parse error:\n" ++ err
