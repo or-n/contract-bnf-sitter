@@ -28,14 +28,13 @@ data Name = Name String
 data Rules = Rules [Rule]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data Rule = Rule Id Expression
-  deriving (C.Eq, C.Ord, C.Show, C.Read)
-
-data Expression
-    = Choice [Expression]
-    | Seq [Expression]
-    | Repeat Expression
-    | Repeat1 Expression
+data Rule
+    = Rule Id Rule
+    | Choice [Rule]
+    | Seq [Rule]
+    | Repeat Rule
+    | Repeat1 Rule
+    | Optional Rule
     | Symbol Id
     | Const Id
     | Literal String

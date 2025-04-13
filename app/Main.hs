@@ -16,12 +16,19 @@ import qualified PrintRustRegex as RustRegex
 
 import Translate
 
+lbnf = LBNF.pGrammar . LBNF.myLexer
+treeSitter = TreeSitter.pGrammar . TreeSitter.myLexer
+
 main = do
-  input <- readFile "samplesLBNF/digit.cf"
-  case LBNF.pGrammar (LBNF.myLexer input) of
+  -- input <- readFile "samplesLBNF/digit.cf"
+  -- input <- readFile "samplesTreeSitter/quote.js"
+  input <- readFile "samplesTreeSitter/digit.js"
+  case treeSitter input of
     Ok tree -> do
       putStrLn "Parsed successfully!"
-      putStrLn (LBNF.printTree tree)
-      let t = translate tree
-      putStrLn (TreeSitter.printTree t)
+      putStrLn (TreeSitter.printTree tree)
+      -- let t = translate tree
+      -- let str = TreeSitter.printTree t
+      -- putStrLn str
+      -- writeFile "samplesTreeSitter/digit.js" str
     Bad err -> putStrLn $ "Parse error:\n" ++ err

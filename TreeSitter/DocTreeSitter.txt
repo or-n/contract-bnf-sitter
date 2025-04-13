@@ -28,7 +28,8 @@ The set of reserved words is the set of terminals appearing in the grammar. Thos
 The reserved words used in TreeSitter are the following:
   | ``RustRegex`` | ``choice`` | ``const`` | ``exports``
   | ``grammar`` | ``module`` | ``name`` | ``new``
-  | ``repeat`` | ``repeat1`` | ``rules`` | ``seq``
+  | ``optional`` | ``repeat`` | ``repeat1`` | ``rules``
+  | ``seq`` |  |  |
 
 The symbols used in TreeSitter are the following:
   | . | = | ( | {
@@ -52,20 +53,21 @@ All other symbols are terminals.
   | //GrammarBody// | -> | //Name// ``,`` //Rules// ``,``
   | //Name// | -> | ``name`` ``:`` //String//
   | //Rules// | -> | ``rules`` ``:`` ``{`` //[Rule]// ``}``
-  | //Rule// | -> | //Id// ``:`` ``$`` ``=>`` //Expression//
-  | //[Rule]// | -> | **eps**
-  |  |  **|**  | //Rule// ``,`` //[Rule]//
-  | //Expression// | -> | ``choice`` ``(`` //[Expression]// ``)``
-  |  |  **|**  | ``seq`` ``(`` //[Expression]// ``)``
-  |  |  **|**  | ``repeat`` ``(`` //Expression// ``)``
-  |  |  **|**  | ``repeat1`` ``(`` //Expression// ``)``
+  | //Rule// | -> | //Id// ``:`` ``$`` ``=>`` //Rule//
+  |  |  **|**  | ``choice`` ``(`` //[Rule]// ``)``
+  |  |  **|**  | ``seq`` ``(`` //[Rule]// ``)``
+  |  |  **|**  | ``repeat`` ``(`` //Rule// ``)``
+  |  |  **|**  | ``repeat1`` ``(`` //Rule// ``)``
+  |  |  **|**  | ``optional`` ``(`` //Rule// ``)``
   |  |  **|**  | ``$`` ``.`` //Id//
   |  |  **|**  | //Id//
   |  |  **|**  | //String//
   |  |  **|**  | ``new`` ``RustRegex`` ``(`` //String// ``)``
-  | //[Expression]// | -> | **eps**
-  |  |  **|**  | //Expression//
-  |  |  **|**  | //Expression// ``,`` //[Expression]//
+  | //[Rule]// | -> | **eps**
+  |  |  **|**  | //Rule// ``,`` //[Rule]//
+  |  |  **|**  | **eps**
+  |  |  **|**  | //Rule//
+  |  |  **|**  | //Rule// ``,`` //[Rule]//
 
 
 

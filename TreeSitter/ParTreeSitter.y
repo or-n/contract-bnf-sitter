@@ -17,8 +17,6 @@ module ParTreeSitter
   , pRules
   , pRule
   , pListRule
-  , pExpression
-  , pListExpression
   ) where
 
 import Prelude
@@ -37,8 +35,6 @@ import LexTreeSitter
 %name pRules Rules
 %name pRule Rule
 %name pListRule ListRule
-%name pExpression Expression
-%name pListExpression ListExpression
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
@@ -60,12 +56,13 @@ import LexTreeSitter
   'module'    { PT _ (TS _ 15) }
   'name'      { PT _ (TS _ 16) }
   'new'       { PT _ (TS _ 17) }
-  'repeat'    { PT _ (TS _ 18) }
-  'repeat1'   { PT _ (TS _ 19) }
-  'rules'     { PT _ (TS _ 20) }
-  'seq'       { PT _ (TS _ 21) }
-  '{'         { PT _ (TS _ 22) }
-  '}'         { PT _ (TS _ 23) }
+  'optional'  { PT _ (TS _ 18) }
+  'repeat'    { PT _ (TS _ 19) }
+  'repeat1'   { PT _ (TS _ 20) }
+  'rules'     { PT _ (TS _ 21) }
+  'seq'       { PT _ (TS _ 22) }
+  '{'         { PT _ (TS _ 23) }
+  '}'         { PT _ (TS _ 24) }
   L_quoted    { PT _ (TL $$)   }
   L_Id        { PT _ (T_Id $$) }
 
@@ -102,27 +99,25 @@ Rules :: { AbsTreeSitter.Rules }
 Rules : 'rules' ':' '{' ListRule '}' { AbsTreeSitter.Rules $4 }
 
 Rule :: { AbsTreeSitter.Rule }
-Rule : Id ':' '$' '=>' Expression { AbsTreeSitter.Rule $1 $5 }
-
-ListRule :: { [AbsTreeSitter.Rule] }
-ListRule : {- empty -} { [] } | Rule ',' ListRule { (:) $1 $3 }
-
-Expression :: { AbsTreeSitter.Expression }
-Expression
-  : 'choice' '(' ListExpression ')' { AbsTreeSitter.Choice $3 }
-  | 'seq' '(' ListExpression ')' { AbsTreeSitter.Seq $3 }
-  | 'repeat' '(' Expression ')' { AbsTreeSitter.Repeat $3 }
-  | 'repeat1' '(' Expression ')' { AbsTreeSitter.Repeat1 $3 }
+Rule
+  : Id ':' '$' '=>' Rule { AbsTreeSitter.Rule $1 $5 }
+  | 'choice' '(' ListRule ')' { AbsTreeSitter.Choice $3 }
+  | 'seq' '(' ListRule ')' { AbsTreeSitter.Seq $3 }
+  | 'repeat' '(' Rule ')' { AbsTreeSitter.Repeat $3 }
+  | 'repeat1' '(' Rule ')' { AbsTreeSitter.Repeat1 $3 }
+  | 'optional' '(' Rule ')' { AbsTreeSitter.Optional $3 }
   | '$' '.' Id { AbsTreeSitter.Symbol $3 }
   | Id { AbsTreeSitter.Const $1 }
   | String { AbsTreeSitter.Literal $1 }
   | 'new' 'RustRegex' '(' String ')' { AbsTreeSitter.Regex $4 }
 
-ListExpression :: { [AbsTreeSitter.Expression] }
-ListExpression
+ListRule :: { [AbsTreeSitter.Rule] }
+ListRule
   : {- empty -} { [] }
-  | Expression { (:[]) $1 }
-  | Expression ',' ListExpression { (:) $1 $3 }
+  | Rule ',' ListRule { (:) $1 $3 }
+  | {- empty -} { [] }
+  | Rule { (:[]) $1 }
+  | Rule ',' ListRule { (:) $1 $3 }
 
 {
 

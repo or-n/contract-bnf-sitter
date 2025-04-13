@@ -169,24 +169,20 @@ instance Print AbsTreeSitter.Rules where
 
 instance Print AbsTreeSitter.Rule where
   prt i = \case
-    AbsTreeSitter.Rule id_ expression -> prPrec i 0 (concatD [prt 0 id_, doc (showString ":"), doc (showString "$"), doc (showString "=>"), prt 0 expression])
-
-instance Print [AbsTreeSitter.Rule] where
-  prt _ [] = concatD []
-  prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
-
-instance Print AbsTreeSitter.Expression where
-  prt i = \case
-    AbsTreeSitter.Choice expressions -> prPrec i 0 (concatD [doc (showString "choice"), doc (showString "("), prt 0 expressions, doc (showString ")")])
-    AbsTreeSitter.Seq expressions -> prPrec i 0 (concatD [doc (showString "seq"), doc (showString "("), prt 0 expressions, doc (showString ")")])
-    AbsTreeSitter.Repeat expression -> prPrec i 0 (concatD [doc (showString "repeat"), doc (showString "("), prt 0 expression, doc (showString ")")])
-    AbsTreeSitter.Repeat1 expression -> prPrec i 0 (concatD [doc (showString "repeat1"), doc (showString "("), prt 0 expression, doc (showString ")")])
+    AbsTreeSitter.Rule id_ rule -> prPrec i 0 (concatD [prt 0 id_, doc (showString ":"), doc (showString "$"), doc (showString "=>"), prt 0 rule])
+    AbsTreeSitter.Choice rules -> prPrec i 0 (concatD [doc (showString "choice"), doc (showString "("), prt 0 rules, doc (showString ")")])
+    AbsTreeSitter.Seq rules -> prPrec i 0 (concatD [doc (showString "seq"), doc (showString "("), prt 0 rules, doc (showString ")")])
+    AbsTreeSitter.Repeat rule -> prPrec i 0 (concatD [doc (showString "repeat"), doc (showString "("), prt 0 rule, doc (showString ")")])
+    AbsTreeSitter.Repeat1 rule -> prPrec i 0 (concatD [doc (showString "repeat1"), doc (showString "("), prt 0 rule, doc (showString ")")])
+    AbsTreeSitter.Optional rule -> prPrec i 0 (concatD [doc (showString "optional"), doc (showString "("), prt 0 rule, doc (showString ")")])
     AbsTreeSitter.Symbol id_ -> prPrec i 0 (concatD [doc (showString "$"), doc (showString "."), prt 0 id_])
     AbsTreeSitter.Const id_ -> prPrec i 0 (concatD [prt 0 id_])
     AbsTreeSitter.Literal str -> prPrec i 0 (concatD [printString str])
     AbsTreeSitter.Regex str -> prPrec i 0 (concatD [doc (showString "new"), doc (showString "RustRegex"), doc (showString "("), printString str, doc (showString ")")])
 
-instance Print [AbsTreeSitter.Expression] where
+instance Print [AbsTreeSitter.Rule] where
+  prt _ [] = concatD []
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
+  prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
