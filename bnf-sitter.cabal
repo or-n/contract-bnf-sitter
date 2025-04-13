@@ -19,21 +19,19 @@ executable bnf-sitter
     import:           warnings
     main-is:          Main.hs
     other-modules:
+      ErrM
       AbsLBNF
       ParLBNF
-      ErrM
       PrintLBNF
       SkelLBNF
       LexLBNF
       AbsTreeSitter
       ParTreeSitter
-      ErrM
       PrintTreeSitter
       SkelTreeSitter
       LexTreeSitter
       AbsRustRegex
       ParRustRegex
-      ErrM
       PrintRustRegex
       SkelRustRegex
       LexRustRegex
