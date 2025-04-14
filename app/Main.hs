@@ -1,6 +1,6 @@
 module Main where
 
-import ErrM
+import Data.Maybe (fromMaybe)
 
 import qualified AbsLBNF as LBNF
 import qualified ParLBNF as LBNF
@@ -10,9 +10,9 @@ import qualified AbsTreeSitter as TreeSitter
 import qualified ParTreeSitter as TreeSitter
 import qualified PrintTreeSitter as TreeSitter
 
-import qualified AbsRustRegex as RustRegex
-import qualified ParRustRegex as RustRegex
-import qualified PrintRustRegex as RustRegex
+-- import qualified AbsRustRegex as RustRegex
+-- import qualified ParRustRegex as RustRegex
+-- import qualified PrintRustRegex as RustRegex
 
 import Translate
 
@@ -53,22 +53,22 @@ instance Grammar TreeSitter.Grammar where
 
 go sampleId = \case
   LBNF -> do
-    let Just sample = lookup sampleId samplesLBNF
+    let sample = fromMaybe "" $ lookup sampleId samplesLBNF
     input <- readFile $ dirLBNF <> sample
     case lbnf input of
-      Ok tree -> do
+      Right tree -> do
         putStrLn "Parsed successfully!"
         putStrLn (printTree tree)
         let t = translate tree
         let str = printTree t
         putStrLn str
         writeFile (dirTreeSitter <> sampleId <> ".js") str
-      Bad err -> putStrLn $ "Parse error:\n" ++ err
+      Left err -> putStrLn $ "Parse error:\n" ++ err
   TreeSitter -> do
-    let Just sample = lookup sampleId samplesTreeSitter
+    let sample = fromMaybe "" $ lookup sampleId samplesTreeSitter
     input <- readFile $ dirTreeSitter <> sample
     case treeSitter input of
-      Ok tree -> do
+      Right tree -> do
         putStrLn "Parsed successfully!"
         putStrLn (printTree tree)
-      Bad err -> putStrLn $ "Parse error:\n" ++ err
+      Left err -> putStrLn $ "Parse error:\n" ++ err

@@ -19,9 +19,7 @@ import qualified PrintRustRegex as RustRegex
 mkGrammar name constDecls rules = TreeSitter.Grammar (TreeSitter.Preamble constDecls)
   $ TreeSitter.GrammarBody (TreeSitter.Name name) (TreeSitter.Rules rules)
 
-translate =
-  -- mkGrammar "grammar" []
-  (\(literalGroups, rules) -> mkGrammar "grammar" (map constDecl literalGroups) rules)
+translate = uncurry (mkGrammar "grammar")
   . consts
   . map to_choice
   . groupBy ((==) `on` ruleId)
@@ -41,7 +39,7 @@ consts rules =
     replaceLiteralId (literal, id) = replaceLiteral literal (TreeSitter.Const id)
     replaceInRule rule = foldr replaceLiteralId rule literalGroups
   in
-    (literalGroups, map replaceInRule rules)
+    (map constDecl literalGroups, map replaceInRule rules)
 
 constId literal = TreeSitter.Id literal
 
@@ -79,8 +77,7 @@ ruleExpression (TreeSitter.Rule _ expression) = expression
 
 to_choice = \case
   [x] -> x
-  rules@(rule : _) ->
-    TreeSitter.Rule (ruleId rule)
+  rules@(rule : _) -> TreeSitter.Rule (ruleId rule)
     $ TreeSitter.Choice
     $ map ruleExpression rules
 
@@ -98,18 +95,18 @@ literals = \case
   TreeSitter.Symbol id -> []
   TreeSitter.Const id -> []
   TreeSitter.Literal text -> [text]
-  TreeSitter.Regex text -> []
+  TreeSitter.Regex _text -> []
   
 replaceLiteral from to = go where
   go = \case
-    TreeSitter.Rule id rule -> TreeSitter.Rule id (go rule)
+    TreeSitter.Rule id' rule -> TreeSitter.Rule id' (go rule)
     TreeSitter.Choice rules -> TreeSitter.Choice (map go rules)
     TreeSitter.Seq rules -> TreeSitter.Seq (map go rules)
     TreeSitter.Repeat rule -> TreeSitter.Repeat (go rule)
     TreeSitter.Repeat1 rule -> TreeSitter.Repeat1 (go rule)
     TreeSitter.Optional rule -> TreeSitter.Optional (go rule)
-    TreeSitter.Symbol id -> TreeSitter.Symbol id
-    TreeSitter.Const id -> TreeSitter.Const id
+    TreeSitter.Symbol id' -> TreeSitter.Symbol id'
+    TreeSitter.Const id' -> TreeSitter.Const id'
     TreeSitter.Literal text -> if text == from
       then to
       else TreeSitter.Literal text
