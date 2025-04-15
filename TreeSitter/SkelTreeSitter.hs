@@ -19,6 +19,10 @@ transId :: AbsTreeSitter.Id -> Result
 transId x = case x of
   AbsTreeSitter.Id string -> failure x
 
+transRegEx :: AbsTreeSitter.RegEx -> Result
+transRegEx x = case x of
+  AbsTreeSitter.RegEx string -> failure x
+
 transGrammar :: AbsTreeSitter.Grammar -> Result
 transGrammar x = case x of
   AbsTreeSitter.Grammar preamble grammarbody -> failure x
@@ -54,4 +58,4 @@ transRule x = case x of
   AbsTreeSitter.Symbol id -> failure x
   AbsTreeSitter.Const id -> failure x
   AbsTreeSitter.Literal string -> failure x
-  AbsTreeSitter.Regex string -> failure x
+  AbsTreeSitter.Regex regex -> failure x

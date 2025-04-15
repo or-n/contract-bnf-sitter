@@ -38,9 +38,12 @@ data Rule
     | Symbol Id
     | Const Id
     | Literal String
-    | Regex String
+    | Regex RegEx
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Id = Id String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, Data.String.IsString)
+
+newtype RegEx = RegEx String
   deriving (C.Eq, C.Ord, C.Show, C.Read, Data.String.IsString)
 

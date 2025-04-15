@@ -25,7 +25,8 @@ Optional. Rule ::= "optional" "(" Rule ")" ;
 Symbol. Rule ::= "$" "." Id ;
 Const. Rule ::= Id ;
 Literal. Rule ::= String ;
-Regex. Rule ::= "new" "RustRegex" "(" String ")" ;
+Regex. Rule ::= RegEx ;
 separator Rule "," ;
 
 token Id ((letter | '_') (letter | digit | '_')*) ;
+token RegEx ('/' (char - '/')* '/') ;

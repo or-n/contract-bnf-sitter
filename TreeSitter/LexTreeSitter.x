@@ -49,6 +49,10 @@ $white+ ;
 (\_ | $l)(\_ | ($d | $l)) *
     { tok (eitherResIdent T_Id) }
 
+-- token RegEx
+\/ [$u # \/]* \/
+    { tok (eitherResIdent T_RegEx) }
+
 -- Keywords and Ident
 $l $i*
     { tok (eitherResIdent TV) }
@@ -71,6 +75,7 @@ data Tok
   | TD !String                    -- ^ Float literal.
   | TC !String                    -- ^ Character literal.
   | T_Id !String
+  | T_RegEx !String
   deriving (Eq, Show, Ord)
 
 -- | Smart constructor for 'Tok' for the sake of backwards compatibility.
@@ -134,6 +139,7 @@ tokenText t = case t of
   PT _ (TC s)   -> s
   Err _         -> "#error"
   PT _ (T_Id s) -> s
+  PT _ (T_RegEx s) -> s
 
 -- | Convert a token to a string.
 prToken :: Token -> String
@@ -160,18 +166,16 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "exports" 13
-    (b ";" 7
-       (b "," 4
-          (b "(" 2 (b "$" 1 N N) (b ")" 3 N N)) (b ":" 6 (b "." 5 N N) N))
-       (b "RustRegex" 10
-          (b "=>" 9 (b "=" 8 N N) N) (b "const" 12 (b "choice" 11 N N) N)))
-    (b "repeat" 19
-       (b "name" 16
-          (b "module" 15 (b "grammar" 14 N N) N)
-          (b "optional" 18 (b "new" 17 N N) N))
-       (b "seq" 22
-          (b "rules" 21 (b "repeat1" 20 N N) N) (b "}" 24 (b "{" 23 N N) N)))
+  b "exports" 12
+    (b ":" 6
+       (b ")" 3 (b "(" 2 (b "$" 1 N N) N) (b "." 5 (b "," 4 N N) N))
+       (b "=>" 9
+          (b "=" 8 (b ";" 7 N N) N) (b "const" 11 (b "choice" 10 N N) N)))
+    (b "repeat1" 18
+       (b "name" 15
+          (b "module" 14 (b "grammar" 13 N N) N)
+          (b "repeat" 17 (b "optional" 16 N N) N))
+       (b "{" 21 (b "seq" 20 (b "rules" 19 N N) N) (b "}" 22 N N)))
   where
   b s n = B bs (TS bs n)
     where

@@ -21,10 +21,16 @@ mkGrammar name constDecls rules = TreeSitter.Grammar (TreeSitter.Preamble constD
 
 translate = uncurry (mkGrammar "grammar")
   . consts
+  . map substPredefined
   . map to_choice
   . groupBy ((==) `on` ruleId)
   . map translateDef
   . definitions
+
+substPredefined =
+  substSymbol (TreeSitter.Id "Integer") (regex "[0-9]+")
+
+regex = TreeSitter.Regex . TreeSitter.RegEx . \x -> "/" <> x <> "/"
 
 constDecl (literal, id) = TreeSitter.ConstDecl id literal 
 
@@ -35,11 +41,11 @@ consts rules =
       $ filter shouldMkConst
       $ map (\xs@(x: _) -> (x, length xs))
       $ group
-      $ concatMap literals rules
-    replaceLiteralId (literal, id) = replaceLiteral literal (TreeSitter.Const id)
-    replaceInRule rule = foldr replaceLiteralId rule literalGroups
+      $ concatMap collectLiterals rules
+    substLiteralId (literal, id) = substLiteral literal (TreeSitter.Const id)
+    substInRule rule = foldr substLiteralId rule literalGroups
   in
-    (map constDecl literalGroups, map replaceInRule rules)
+    (map constDecl literalGroups, map substInRule rules)
 
 constId literal = TreeSitter.Id literal
 
@@ -85,19 +91,19 @@ to_text = \case
   LBNF.ListCat cat -> "List" <> to_text cat
   LBNF.IdCat (LBNF.Ident text) -> text
   
-literals = \case
-  TreeSitter.Rule id rule -> literals rule
-  TreeSitter.Choice rules -> concatMap literals rules
-  TreeSitter.Seq rules -> concatMap literals rules
-  TreeSitter.Repeat rule -> literals rule
-  TreeSitter.Repeat1 rule -> literals rule
-  TreeSitter.Optional rule -> literals rule
+collectLiterals = \case
+  TreeSitter.Rule id rule -> collectLiterals rule
+  TreeSitter.Choice rules -> concatMap collectLiterals rules
+  TreeSitter.Seq rules -> concatMap collectLiterals rules
+  TreeSitter.Repeat rule -> collectLiterals rule
+  TreeSitter.Repeat1 rule -> collectLiterals rule
+  TreeSitter.Optional rule -> collectLiterals rule
   TreeSitter.Symbol id -> []
   TreeSitter.Const id -> []
   TreeSitter.Literal text -> [text]
   TreeSitter.Regex _text -> []
   
-replaceLiteral from to = go where
+substLiteral from to = go where
   go = \case
     TreeSitter.Rule id' rule -> TreeSitter.Rule id' (go rule)
     TreeSitter.Choice rules -> TreeSitter.Choice (map go rules)
@@ -110,4 +116,19 @@ replaceLiteral from to = go where
     TreeSitter.Literal text -> if text == from
       then to
       else TreeSitter.Literal text
+    TreeSitter.Regex text -> TreeSitter.Regex text
+
+substSymbol from to = go where
+  go = \case
+    TreeSitter.Rule id' rule -> TreeSitter.Rule id' (go rule)
+    TreeSitter.Choice rules -> TreeSitter.Choice (map go rules)
+    TreeSitter.Seq rules -> TreeSitter.Seq (map go rules)
+    TreeSitter.Repeat rule -> TreeSitter.Repeat (go rule)
+    TreeSitter.Repeat1 rule -> TreeSitter.Repeat1 (go rule)
+    TreeSitter.Optional rule -> TreeSitter.Optional (go rule)
+    TreeSitter.Symbol id' -> if id' == from
+      then to
+      else TreeSitter.Symbol id'
+    TreeSitter.Const id' -> TreeSitter.Const id'
+    TreeSitter.Literal text -> TreeSitter.Literal text
     TreeSitter.Regex text -> TreeSitter.Regex text

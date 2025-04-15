@@ -39,32 +39,31 @@ import LexTreeSitter
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '$'         { PT _ (TS _ 1)  }
-  '('         { PT _ (TS _ 2)  }
-  ')'         { PT _ (TS _ 3)  }
-  ','         { PT _ (TS _ 4)  }
-  '.'         { PT _ (TS _ 5)  }
-  ':'         { PT _ (TS _ 6)  }
-  ';'         { PT _ (TS _ 7)  }
-  '='         { PT _ (TS _ 8)  }
-  '=>'        { PT _ (TS _ 9)  }
-  'RustRegex' { PT _ (TS _ 10) }
-  'choice'    { PT _ (TS _ 11) }
-  'const'     { PT _ (TS _ 12) }
-  'exports'   { PT _ (TS _ 13) }
-  'grammar'   { PT _ (TS _ 14) }
-  'module'    { PT _ (TS _ 15) }
-  'name'      { PT _ (TS _ 16) }
-  'new'       { PT _ (TS _ 17) }
-  'optional'  { PT _ (TS _ 18) }
-  'repeat'    { PT _ (TS _ 19) }
-  'repeat1'   { PT _ (TS _ 20) }
-  'rules'     { PT _ (TS _ 21) }
-  'seq'       { PT _ (TS _ 22) }
-  '{'         { PT _ (TS _ 23) }
-  '}'         { PT _ (TS _ 24) }
-  L_quoted    { PT _ (TL $$)   }
-  L_Id        { PT _ (T_Id $$) }
+  '$'        { PT _ (TS _ 1)     }
+  '('        { PT _ (TS _ 2)     }
+  ')'        { PT _ (TS _ 3)     }
+  ','        { PT _ (TS _ 4)     }
+  '.'        { PT _ (TS _ 5)     }
+  ':'        { PT _ (TS _ 6)     }
+  ';'        { PT _ (TS _ 7)     }
+  '='        { PT _ (TS _ 8)     }
+  '=>'       { PT _ (TS _ 9)     }
+  'choice'   { PT _ (TS _ 10)    }
+  'const'    { PT _ (TS _ 11)    }
+  'exports'  { PT _ (TS _ 12)    }
+  'grammar'  { PT _ (TS _ 13)    }
+  'module'   { PT _ (TS _ 14)    }
+  'name'     { PT _ (TS _ 15)    }
+  'optional' { PT _ (TS _ 16)    }
+  'repeat'   { PT _ (TS _ 17)    }
+  'repeat1'  { PT _ (TS _ 18)    }
+  'rules'    { PT _ (TS _ 19)    }
+  'seq'      { PT _ (TS _ 20)    }
+  '{'        { PT _ (TS _ 21)    }
+  '}'        { PT _ (TS _ 22)    }
+  L_quoted   { PT _ (TL $$)      }
+  L_Id       { PT _ (T_Id $$)    }
+  L_RegEx    { PT _ (T_RegEx $$) }
 
 %%
 
@@ -73,6 +72,9 @@ String   : L_quoted { $1 }
 
 Id :: { AbsTreeSitter.Id }
 Id  : L_Id { AbsTreeSitter.Id $1 }
+
+RegEx :: { AbsTreeSitter.RegEx }
+RegEx  : L_RegEx { AbsTreeSitter.RegEx $1 }
 
 Grammar :: { AbsTreeSitter.Grammar }
 Grammar
@@ -109,7 +111,7 @@ Rule
   | '$' '.' Id { AbsTreeSitter.Symbol $3 }
   | Id { AbsTreeSitter.Const $1 }
   | String { AbsTreeSitter.Literal $1 }
-  | 'new' 'RustRegex' '(' String ')' { AbsTreeSitter.Regex $4 }
+  | RegEx { AbsTreeSitter.Regex $1 }
 
 ListRule :: { [AbsTreeSitter.Rule] }
 ListRule

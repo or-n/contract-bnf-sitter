@@ -139,6 +139,8 @@ instance Print Double where
 
 instance Print AbsTreeSitter.Id where
   prt _ (AbsTreeSitter.Id i) = doc $ showString i
+instance Print AbsTreeSitter.RegEx where
+  prt _ (AbsTreeSitter.RegEx i) = doc $ showString i
 instance Print AbsTreeSitter.Grammar where
   prt i = \case
     AbsTreeSitter.Grammar preamble grammarbody -> prPrec i 0 (concatD [prt 0 preamble, doc (showString "module"), doc (showString "."), doc (showString "exports"), doc (showString "="), doc (showString "grammar"), doc (showString "("), doc (showString "{"), prt 0 grammarbody, doc (showString "}"), doc (showString ")"), doc (showString ";")])
@@ -178,7 +180,7 @@ instance Print AbsTreeSitter.Rule where
     AbsTreeSitter.Symbol id_ -> prPrec i 0 (concatD [doc (showString "$"), doc (showString "."), prt 0 id_])
     AbsTreeSitter.Const id_ -> prPrec i 0 (concatD [prt 0 id_])
     AbsTreeSitter.Literal str -> prPrec i 0 (concatD [printString str])
-    AbsTreeSitter.Regex str -> prPrec i 0 (concatD [doc (showString "new"), doc (showString "RustRegex"), doc (showString "("), printString str, doc (showString ")")])
+    AbsTreeSitter.Regex regex -> prPrec i 0 (concatD [prt 0 regex])
 
 instance Print [AbsTreeSitter.Rule] where
   prt _ [] = concatD []
