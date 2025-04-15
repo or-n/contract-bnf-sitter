@@ -16,18 +16,20 @@ import qualified PrintTreeSitter as TreeSitter
 
 import Translate
 
-main = go "predefined" LBNF
+main = go "bar" LBNF
 
 lbnf = LBNF.pGrammar . LBNF.myLexer
 treeSitter = TreeSitter.pGrammar . TreeSitter.myLexer
 
-dirLBNF = "samplesLBNF/"
-dirTreeSitter = "samplesTreeSitter/"
+samples = "samples/"
+dirLBNF = samples <> show LBNF <> "/"
+dirTreeSitter = samples <> show TreeSitter <> "/" 
 
 samplesLBNF =
   [ ("digit", "digit.cf")
   , ("const", "const.cf")
   , ("predefined", "predefined.cf")
+  , ("bar", "bar.cf")
   ]
 
 samplesTreeSitter =
@@ -35,13 +37,12 @@ samplesTreeSitter =
   , ("quote", "quote.js")
   , ("digit", "digit.js")
   , ("const", "const.js")
+  , ("predefined", "predefined.js")
+  , ("bar", "bar.js")
   ]
 
 data Input = LBNF | TreeSitter
-
-dir = \case
-  LBNF -> "samplesLBNF/"
-  TreeSitter -> "samplesTreeSitter/"
+  deriving Show
 
 class Grammar a where
   printTree :: a -> String

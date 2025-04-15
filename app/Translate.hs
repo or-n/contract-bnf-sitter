@@ -1,31 +1,28 @@
 module Translate where
 
-import Data.List (groupBy, group)
+import Data.List (groupBy, group, partition)
 import Data.Function (on)
-import ErrM
+import Data.Char (toLower)
 
 import qualified AbsLBNF as LBNF
-import qualified ParLBNF as LBNF
-import qualified PrintLBNF as LBNF
-
 import qualified AbsTreeSitter as TreeSitter
-import qualified ParTreeSitter as TreeSitter
-import qualified PrintTreeSitter as TreeSitter
-
-import qualified AbsRustRegex as RustRegex
-import qualified ParRustRegex as RustRegex
-import qualified PrintRustRegex as RustRegex
 
 mkGrammar name constDecls rules = TreeSitter.Grammar (TreeSitter.Preamble constDecls)
   $ TreeSitter.GrammarBody (TreeSitter.Name name) (TreeSitter.Rules rules)
 
-translate = uncurry (mkGrammar "grammar")
-  . consts
-  . map substPredefined
-  . map to_choice
-  . groupBy ((==) `on` ruleId)
-  . map translateDef
-  . definitions
+translate grammar =
+  let
+    defs = definitions grammar
+    (rules, _not_rules) = partition isRule defs
+  in
+    uncurry (mkGrammar "grammar")
+    . consts
+    . map substPredefined
+    . map to_choice
+    . groupBy ((==) `on` ruleId)
+    $ map translateDef rules
+
+isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
 
 substPredefined = substSymbol (TreeSitter.Id "Integer") (regex "[0-9]+")
   . substSymbol (TreeSitter.Id "Double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
@@ -35,17 +32,17 @@ substPredefined = substSymbol (TreeSitter.Id "Integer") (regex "[0-9]+")
 
 regex = TreeSitter.Regex . TreeSitter.RegEx . \x -> "/" <> x <> "/"
 
-constDecl (literal, id) = TreeSitter.ConstDecl id literal 
+constDecl (literal, id') = TreeSitter.ConstDecl id' literal 
 
 consts rules =
   let
-    shouldMkConst (literal, count) = count >= 2
-    literalGroups = map (\(literal, count) -> (literal, constId literal)) 
+    shouldMkConst (_literal, count) = count >= 2
+    literalGroups = map (\(literal, _count) -> (literal, constId literal)) 
       $ filter shouldMkConst
-      $ map (\xs@(x: _) -> (x, length xs))
+      $ map (\case xs@(x: _) -> (x, length xs); [] -> undefined)
       $ group
       $ concatMap collectLiterals rules
-    substLiteralId (literal, id) = substLiteral literal (TreeSitter.Const id)
+    substLiteralId (literal, id') = substLiteral literal (TreeSitter.Const id')
     substInRule rule = foldr substLiteralId rule literalGroups
   in
     (map constDecl literalGroups, map substInRule rules)
@@ -56,21 +53,9 @@ translateDef = \case
   LBNF.Rule _label cat items -> TreeSitter.Rule
     (TreeSitter.Id (to_text cat))
     (to_seq (map to_rule items))
-  LBNF.Comment open -> undefined
-  LBNF.Comments open close -> undefined
-  LBNF.Internal label cat items -> undefined
-  LBNF.Token ident reg -> undefined
-  LBNF.PosToken ident reg -> undefined
-  LBNF.Entryp idents -> undefined
-  LBNF.Separator minSize cat text -> undefined
-  LBNF.Terminator minSize cat text -> undefined
-  LBNF.Coercions ident n -> undefined
-  LBNF.Rules ident rhss -> undefined
-  LBNF.Layout ids -> undefined
-  LBNF.LayoutStop ids -> undefined
-  LBNF.LayoutTop -> undefined
+  _ -> undefined
 
-definitions (LBNF.MkGrammar definitions) = definitions
+definitions (LBNF.MkGrammar defs) = defs
 
 to_seq = \case
   [x] -> x
@@ -80,11 +65,14 @@ to_rule = \case
   LBNF.Terminal text -> TreeSitter.Literal text
   LBNF.NTerminal cat -> TreeSitter.Symbol (TreeSitter.Id (to_text cat))
 
-ruleId (TreeSitter.Rule id _) = id
+ruleId (TreeSitter.Rule id' _) = id'
+ruleId _ = undefined
 
 ruleExpression (TreeSitter.Rule _ expression) = expression
+ruleExpression _ = undefined
 
 to_choice = \case
+  [] -> undefined
   [x] -> x
   rules@(rule : _) -> TreeSitter.Rule (ruleId rule)
     $ TreeSitter.Choice
@@ -92,17 +80,19 @@ to_choice = \case
 
 to_text = \case
   LBNF.ListCat cat -> "List" <> to_text cat
-  LBNF.IdCat (LBNF.Ident text) -> text
-  
+  LBNF.IdCat (LBNF.Ident text) -> case text of
+    (first : rest) -> "_" <> [toLower first] <> rest
+    _ -> ""
+ 
 collectLiterals = \case
-  TreeSitter.Rule id rule -> collectLiterals rule
+  TreeSitter.Rule _id' rule -> collectLiterals rule
   TreeSitter.Choice rules -> concatMap collectLiterals rules
   TreeSitter.Seq rules -> concatMap collectLiterals rules
   TreeSitter.Repeat rule -> collectLiterals rule
   TreeSitter.Repeat1 rule -> collectLiterals rule
   TreeSitter.Optional rule -> collectLiterals rule
-  TreeSitter.Symbol id -> []
-  TreeSitter.Const id -> []
+  TreeSitter.Symbol _id' -> []
+  TreeSitter.Const _id' -> []
   TreeSitter.Literal text -> [text]
   TreeSitter.Regex _text -> []
   

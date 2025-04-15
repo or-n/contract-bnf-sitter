@@ -1,0 +1,4 @@
+entrypoints Bar ;
+
+Foo. Bar ::= "foo" Bar ;
+Lol. Bar ::= "lol" ;
