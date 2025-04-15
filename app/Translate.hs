@@ -17,18 +17,19 @@ translate grammar =
   in
     uncurry (mkGrammar "grammar")
     . consts
-    . map substPredefined
     . map to_choice
     . groupBy ((==) `on` ruleId)
-    $ map translateDef rules
+    . map substPredefined
+    . map translateDef
+    $ rules
 
 isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
 
-substPredefined = substSymbol (TreeSitter.Id "Integer") (regex "[0-9]+")
-  . substSymbol (TreeSitter.Id "Double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
-  . substSymbol (TreeSitter.Id "Char") (TreeSitter.Literal "<Char>")
-  . substSymbol (TreeSitter.Id "String") (TreeSitter.Literal "<String>")
-  . substSymbol (TreeSitter.Id "Ident") (TreeSitter.Literal "<Ident>")
+substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
+  . substSymbol (TreeSitter.Id "_double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
+  . substSymbol (TreeSitter.Id "_char") (regex "'([^'\\\\]|\\\\[tnrf])'")
+  . substSymbol (TreeSitter.Id "_string") (TreeSitter.Literal "<String>")
+  . substSymbol (TreeSitter.Id "_ident") (TreeSitter.Literal "<Ident>")
 
 regex = TreeSitter.Regex . TreeSitter.RegEx . \x -> "/" <> x <> "/"
 
@@ -81,8 +82,10 @@ to_choice = \case
 to_text = \case
   LBNF.ListCat cat -> "List" <> to_text cat
   LBNF.IdCat (LBNF.Ident text) -> case text of
-    (first : rest) -> "_" <> [toLower first] <> rest
-    _ -> ""
+    "Grammar" -> "grammar"
+    _ -> "_" <> lowerFirst text
+
+lowerFirst = \case (first : rest) -> toLower first : rest; text -> text
  
 collectLiterals = \case
   TreeSitter.Rule _id' rule -> collectLiterals rule

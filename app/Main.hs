@@ -16,7 +16,7 @@ import qualified PrintTreeSitter as TreeSitter
 
 import Translate
 
-main = go "bar" LBNF
+main = go "predefined" LBNF
 
 lbnf = LBNF.pGrammar . LBNF.myLexer
 treeSitter = TreeSitter.pGrammar . TreeSitter.myLexer
