@@ -28,7 +28,7 @@ isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
 substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
   . substSymbol (TreeSitter.Id "_double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
   . substSymbol (TreeSitter.Id "_char") (regex "'([^'\\\\]|\\\\[tnrf])'")
-  . substSymbol (TreeSitter.Id "_string") (TreeSitter.Literal "<String>")
+  . substSymbol (TreeSitter.Id "_string") (regex "\"([^\"\\\\]|\\\\[tnrf])*\"")
   . substSymbol (TreeSitter.Id "_ident") (TreeSitter.Literal "<Ident>")
 
 regex = TreeSitter.Regex . TreeSitter.RegEx . \x -> "/" <> x <> "/"
