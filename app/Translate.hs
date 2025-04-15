@@ -27,8 +27,11 @@ translate = uncurry (mkGrammar "grammar")
   . map translateDef
   . definitions
 
-substPredefined =
-  substSymbol (TreeSitter.Id "Integer") (regex "[0-9]+")
+substPredefined = substSymbol (TreeSitter.Id "Integer") (regex "[0-9]+")
+  . substSymbol (TreeSitter.Id "Double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
+  . substSymbol (TreeSitter.Id "Char") (TreeSitter.Literal "<Char>")
+  . substSymbol (TreeSitter.Id "String") (TreeSitter.Literal "<String>")
+  . substSymbol (TreeSitter.Id "Ident") (TreeSitter.Literal "<Ident>")
 
 regex = TreeSitter.Regex . TreeSitter.RegEx . \x -> "/" <> x <> "/"
 
