@@ -3,7 +3,7 @@ module Translate where
 import Control.Monad (join)
 import Data.List (groupBy, group, partition)
 import Data.Function (on)
-import Data.Char (toLower)
+import Util (lowerFirst)
 
 import qualified AbsLBNF as LBNF
 import qualified AbsTreeSitter as TreeSitter
@@ -18,14 +18,14 @@ translate grammar =
   in
     uncurry (mkGrammar "grammar")
     . consts
-    . map (mapExpression substPredefined)
+    . map (mapRuleExpression substPredefined)
     . join
     . map pushChoiceRule
     . groupBy ((==) `on` fst)
     . map translateRule
     $ rules
 
-mapExpression f (TreeSitter.Rule id' expression) =
+mapRuleExpression f (TreeSitter.Rule id' expression) =
   TreeSitter.Rule id' (f expression)
 
 isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
@@ -36,7 +36,7 @@ substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
   . substSymbol (TreeSitter.Id "_string") (regex "\"([^\"\\\\]|\\\\[tnrf])*\"")
   . substSymbol (TreeSitter.Id "_ident") (regex "[a-zA-z][a-zA-z0-9_']*")
 
-regex = TreeSitter.Regex . TreeSitter.RegEx . \x -> "/" <> x <> "/"
+regex x = TreeSitter.Regex . TreeSitter.RegEx $ "/" <> x <> "/"
 
 constDecl (literal, id') = TreeSitter.ConstDecl id' literal 
 
@@ -45,14 +45,14 @@ consts rules =
     shouldMkConst (_literal, count) = count >= 2
     literalGroups = map (\(literal, _count) -> (literal, constId literal)) 
       $ filter shouldMkConst
-      $ map (\case xs@(x: _) -> (x, length xs); [] -> undefined)
+      $ map (\xs -> (head xs, length xs))
       $ group
       $ concatMap (collectLiterals . ruleExpression)
       $ rules
     substLiteralId (literal, id') = substLiteral literal (TreeSitter.Const id')
     subst expression = foldr substLiteralId expression literalGroups
   in
-    (map constDecl literalGroups, map (mapExpression subst) rules)
+    (map constDecl literalGroups, map (mapRuleExpression subst) rules)
 
 constId literal = TreeSitter.Id literal
 
@@ -109,43 +109,34 @@ labelIdToText = \case
 
 ident (LBNF.Ident text) = text
 
-lowerFirst = \case (first : rest) -> toLower first : rest; text -> text
- 
 collectLiterals = \case
-  TreeSitter.Choice rules -> concatMap collectLiterals rules
-  TreeSitter.Seq rules -> concatMap collectLiterals rules
-  TreeSitter.Repeat rule -> collectLiterals rule
-  TreeSitter.Repeat1 rule -> collectLiterals rule
-  TreeSitter.Optional rule -> collectLiterals rule
-  TreeSitter.Symbol _id' -> []
-  TreeSitter.Const _id' -> []
   TreeSitter.Literal text -> [text]
-  TreeSitter.Regex _text -> []
+  x -> foldExpression (concatMap collectLiterals) collectLiterals [] x
   
-substLiteral from to = go where
-  go = \case
-    TreeSitter.Choice rules -> TreeSitter.Choice (map go rules)
-    TreeSitter.Seq rules -> TreeSitter.Seq (map go rules)
-    TreeSitter.Repeat rule -> TreeSitter.Repeat (go rule)
-    TreeSitter.Repeat1 rule -> TreeSitter.Repeat1 (go rule)
-    TreeSitter.Optional rule -> TreeSitter.Optional (go rule)
-    TreeSitter.Symbol id' -> TreeSitter.Symbol id'
-    TreeSitter.Const id' -> TreeSitter.Const id'
-    TreeSitter.Literal text -> if text == from
-      then to
-      else TreeSitter.Literal text
-    TreeSitter.Regex text -> TreeSitter.Regex text
+substLiteral from to = \case
+  TreeSitter.Literal text -> if text == from
+    then to
+    else TreeSitter.Literal text
+  x -> mapExpression (substLiteral from to) x
 
-substSymbol from to = go where
-  go = \case
-    TreeSitter.Choice rules -> TreeSitter.Choice (map go rules)
-    TreeSitter.Seq rules -> TreeSitter.Seq (map go rules)
-    TreeSitter.Repeat rule -> TreeSitter.Repeat (go rule)
-    TreeSitter.Repeat1 rule -> TreeSitter.Repeat1 (go rule)
-    TreeSitter.Optional rule -> TreeSitter.Optional (go rule)
-    TreeSitter.Symbol id' -> if id' == from
-      then to
-      else TreeSitter.Symbol id'
-    TreeSitter.Const id' -> TreeSitter.Const id'
-    TreeSitter.Literal text -> TreeSitter.Literal text
-    TreeSitter.Regex text -> TreeSitter.Regex text
+substSymbol from to = \case
+  TreeSitter.Symbol id' -> if id' == from
+    then to
+    else TreeSitter.Symbol id'
+  x -> mapExpression (substSymbol from to) x
+
+mapExpression f = \case
+  TreeSitter.Choice xs -> TreeSitter.Choice (map f xs)
+  TreeSitter.Seq xs -> TreeSitter.Seq (map f xs)
+  TreeSitter.Repeat x -> TreeSitter.Repeat (f x)
+  TreeSitter.Repeat1 x -> TreeSitter.Repeat1 (f x)
+  TreeSitter.Optional x -> TreeSitter.Optional (f x)
+  x -> x
+
+foldExpression many one zero = \case
+  TreeSitter.Choice xs -> many xs
+  TreeSitter.Seq xs -> many xs
+  TreeSitter.Repeat x -> one x
+  TreeSitter.Repeat1 x -> one x
+  TreeSitter.Optional x -> one x
+  _ -> zero
