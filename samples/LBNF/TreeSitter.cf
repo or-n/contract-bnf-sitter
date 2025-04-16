@@ -14,19 +14,19 @@ GrammarBody. GrammarBody ::= Name "," Rules "," ;
 Name. Name ::= "name" ":" String ;
 Rules. Rules ::= "rules" ":" "{" [Rule] "}" ;
 
-Rule. Rule ::= Id ":" "$" "=>" Rule ;
+Rule. Rule ::= Id ":" "$" "=>" Expression ;
 terminator Rule "," ;
 
-Choice. Rule ::= "choice" "(" [Rule] ")" ;
-Seq. Rule ::= "seq" "(" [Rule] ")" ;
-Repeat. Rule ::= "repeat" "(" Rule ")" ;
-Repeat1. Rule ::= "repeat1" "(" Rule ")" ;
-Optional. Rule ::= "optional" "(" Rule ")" ;
-Symbol. Rule ::= "$" "." Id ;
-Const. Rule ::= Id ;
-Literal. Rule ::= String ;
-Regex. Rule ::= RegEx ;
-separator Rule "," ;
+Choice. Expression ::= "choice" "(" [Expression] ")" ;
+Seq. Expression ::= "seq" "(" [Expression] ")" ;
+Repeat. Expression ::= "repeat" "(" Expression ")" ;
+Repeat1. Expression ::= "repeat1" "(" Expression ")" ;
+Optional. Expression ::= "optional" "(" Expression ")" ;
+Symbol. Expression ::= "$" "." Id ;
+Const. Expression ::= Id ;
+Literal. Expression ::= String ;
+Regex. Expression ::= RegEx ;
+separator Expression "," ;
 
 token Id ((letter | '_') (letter | digit | '_')*) ;
 token RegEx ('/' (char - '/')* '/') ;

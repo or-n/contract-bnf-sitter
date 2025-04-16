@@ -56,21 +56,21 @@ All other symbols are terminals.
   | //GrammarBody// | -> | //Name// ``,`` //Rules// ``,``
   | //Name// | -> | ``name`` ``:`` //String//
   | //Rules// | -> | ``rules`` ``:`` ``{`` //[Rule]// ``}``
-  | //Rule// | -> | //Id// ``:`` ``$`` ``=>`` //Rule//
-  |  |  **|**  | ``choice`` ``(`` //[Rule]// ``)``
-  |  |  **|**  | ``seq`` ``(`` //[Rule]// ``)``
-  |  |  **|**  | ``repeat`` ``(`` //Rule// ``)``
-  |  |  **|**  | ``repeat1`` ``(`` //Rule// ``)``
-  |  |  **|**  | ``optional`` ``(`` //Rule// ``)``
+  | //Rule// | -> | //Id// ``:`` ``$`` ``=>`` //Expression//
+  | //[Rule]// | -> | **eps**
+  |  |  **|**  | //Rule// ``,`` //[Rule]//
+  | //Expression// | -> | ``choice`` ``(`` //[Expression]// ``)``
+  |  |  **|**  | ``seq`` ``(`` //[Expression]// ``)``
+  |  |  **|**  | ``repeat`` ``(`` //Expression// ``)``
+  |  |  **|**  | ``repeat1`` ``(`` //Expression// ``)``
+  |  |  **|**  | ``optional`` ``(`` //Expression// ``)``
   |  |  **|**  | ``$`` ``.`` //Id//
   |  |  **|**  | //Id//
   |  |  **|**  | //String//
   |  |  **|**  | //RegEx//
-  | //[Rule]// | -> | **eps**
-  |  |  **|**  | //Rule// ``,`` //[Rule]//
-  |  |  **|**  | **eps**
-  |  |  **|**  | //Rule//
-  |  |  **|**  | //Rule// ``,`` //[Rule]//
+  | //[Expression]// | -> | **eps**
+  |  |  **|**  | //Expression//
+  |  |  **|**  | //Expression// ``,`` //[Expression]//
 
 
 

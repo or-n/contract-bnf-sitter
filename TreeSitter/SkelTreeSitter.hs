@@ -49,12 +49,15 @@ transRules x = case x of
 
 transRule :: AbsTreeSitter.Rule -> Result
 transRule x = case x of
-  AbsTreeSitter.Rule id rule -> failure x
-  AbsTreeSitter.Choice rules -> failure x
-  AbsTreeSitter.Seq rules -> failure x
-  AbsTreeSitter.Repeat rule -> failure x
-  AbsTreeSitter.Repeat1 rule -> failure x
-  AbsTreeSitter.Optional rule -> failure x
+  AbsTreeSitter.Rule id expression -> failure x
+
+transExpression :: AbsTreeSitter.Expression -> Result
+transExpression x = case x of
+  AbsTreeSitter.Choice expressions -> failure x
+  AbsTreeSitter.Seq expressions -> failure x
+  AbsTreeSitter.Repeat expression -> failure x
+  AbsTreeSitter.Repeat1 expression -> failure x
+  AbsTreeSitter.Optional expression -> failure x
   AbsTreeSitter.Symbol id -> failure x
   AbsTreeSitter.Const id -> failure x
   AbsTreeSitter.Literal string -> failure x

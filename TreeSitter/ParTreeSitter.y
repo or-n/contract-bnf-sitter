@@ -17,6 +17,8 @@ module ParTreeSitter
   , pRules
   , pRule
   , pListRule
+  , pExpression
+  , pListExpression
   ) where
 
 import Prelude
@@ -35,6 +37,8 @@ import LexTreeSitter
 %name pRules Rules
 %name pRule Rule
 %name pListRule ListRule
+%name pExpression Expression
+%name pListExpression ListExpression
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
@@ -101,25 +105,28 @@ Rules :: { AbsTreeSitter.Rules }
 Rules : 'rules' ':' '{' ListRule '}' { AbsTreeSitter.Rules $4 }
 
 Rule :: { AbsTreeSitter.Rule }
-Rule
-  : Id ':' '$' '=>' Rule { AbsTreeSitter.Rule $1 $5 }
-  | 'choice' '(' ListRule ')' { AbsTreeSitter.Choice $3 }
-  | 'seq' '(' ListRule ')' { AbsTreeSitter.Seq $3 }
-  | 'repeat' '(' Rule ')' { AbsTreeSitter.Repeat $3 }
-  | 'repeat1' '(' Rule ')' { AbsTreeSitter.Repeat1 $3 }
-  | 'optional' '(' Rule ')' { AbsTreeSitter.Optional $3 }
+Rule : Id ':' '$' '=>' Expression { AbsTreeSitter.Rule $1 $5 }
+
+ListRule :: { [AbsTreeSitter.Rule] }
+ListRule : {- empty -} { [] } | Rule ',' ListRule { (:) $1 $3 }
+
+Expression :: { AbsTreeSitter.Expression }
+Expression
+  : 'choice' '(' ListExpression ')' { AbsTreeSitter.Choice $3 }
+  | 'seq' '(' ListExpression ')' { AbsTreeSitter.Seq $3 }
+  | 'repeat' '(' Expression ')' { AbsTreeSitter.Repeat $3 }
+  | 'repeat1' '(' Expression ')' { AbsTreeSitter.Repeat1 $3 }
+  | 'optional' '(' Expression ')' { AbsTreeSitter.Optional $3 }
   | '$' '.' Id { AbsTreeSitter.Symbol $3 }
   | Id { AbsTreeSitter.Const $1 }
   | String { AbsTreeSitter.Literal $1 }
   | RegEx { AbsTreeSitter.Regex $1 }
 
-ListRule :: { [AbsTreeSitter.Rule] }
-ListRule
+ListExpression :: { [AbsTreeSitter.Expression] }
+ListExpression
   : {- empty -} { [] }
-  | Rule ',' ListRule { (:) $1 $3 }
-  | {- empty -} { [] }
-  | Rule { (:[]) $1 }
-  | Rule ',' ListRule { (:) $1 $3 }
+  | Expression { (:[]) $1 }
+  | Expression ',' ListExpression { (:) $1 $3 }
 
 {
 

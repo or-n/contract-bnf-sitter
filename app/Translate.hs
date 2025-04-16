@@ -1,5 +1,6 @@
 module Translate where
 
+import Control.Monad (join)
 import Data.List (groupBy, group, partition)
 import Data.Function (on)
 import Data.Char (toLower)
@@ -13,15 +14,19 @@ mkGrammar name constDecls rules = TreeSitter.Grammar (TreeSitter.Preamble constD
 translate grammar =
   let
     defs = definitions grammar
-    (rules, _not_rules) = partition isRule defs
+    (rules, _notRules) = partition isRule defs
   in
     uncurry (mkGrammar "grammar")
     . consts
-    . map to_choice
-    . groupBy ((==) `on` ruleId)
-    . map substPredefined
-    . map translateDef
+    . map (mapExpression substPredefined)
+    . join
+    . map pushChoiceRule
+    . groupBy ((==) `on` fst)
+    . map translateRule
     $ rules
+
+mapExpression f (TreeSitter.Rule id' expression) =
+  TreeSitter.Rule id' (f expression)
 
 isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
 
@@ -42,53 +47,71 @@ consts rules =
       $ filter shouldMkConst
       $ map (\case xs@(x: _) -> (x, length xs); [] -> undefined)
       $ group
-      $ concatMap collectLiterals rules
+      $ concatMap (collectLiterals . ruleExpression)
+      $ rules
     substLiteralId (literal, id') = substLiteral literal (TreeSitter.Const id')
-    substInRule rule = foldr substLiteralId rule literalGroups
+    subst expression = foldr substLiteralId expression literalGroups
   in
-    (map constDecl literalGroups, map substInRule rules)
+    (map constDecl literalGroups, map (mapExpression subst) rules)
 
 constId literal = TreeSitter.Id literal
 
-translateDef = \case
-  LBNF.Rule _label cat items -> TreeSitter.Rule
-    (TreeSitter.Id (to_text cat))
-    (to_seq (map to_rule items))
+translateRule = \case
+  LBNF.Rule label cat items ->
+    let
+      rule = TreeSitter.Rule
+        (TreeSitter.Id (labelToText label))
+        (toSeq (map itemToExpression items))
+    in
+      (cat, rule)
   _ -> undefined
 
 definitions (LBNF.MkGrammar defs) = defs
 
-to_seq = \case
+toSeq = \case
   [x] -> x
   xs -> TreeSitter.Seq xs
 
-to_rule = \case
+itemToExpression = \case
   LBNF.Terminal text -> TreeSitter.Literal text
-  LBNF.NTerminal cat -> TreeSitter.Symbol (TreeSitter.Id (to_text cat))
+  LBNF.NTerminal cat -> TreeSitter.Symbol (TreeSitter.Id (catToText cat))
 
 ruleId (TreeSitter.Rule id' _) = id'
-ruleId _ = undefined
 
 ruleExpression (TreeSitter.Rule _ expression) = expression
-ruleExpression _ = undefined
 
-to_choice = \case
-  [] -> undefined
-  [x] -> x
-  rules@(rule : _) -> TreeSitter.Rule (ruleId rule)
-    $ TreeSitter.Choice
-    $ map ruleExpression rules
+pushChoiceRule xs =
+  let
+    cat = fst (head xs)
+    rules = map snd xs
+    ids = map ruleId rules
+    id' = TreeSitter.Id (catToText cat)
+    rule = TreeSitter.Rule id'
+      $ TreeSitter.Choice
+      $ map TreeSitter.Symbol
+      $ ids
+  in
+    rule : rules
 
-to_text = \case
-  LBNF.ListCat cat -> "List" <> to_text cat
+catToText = \case
+  LBNF.ListCat cat -> "List" <> catToText cat
   LBNF.IdCat (LBNF.Ident text) -> case text of
     "Grammar" -> "grammar"
     _ -> "_" <> lowerFirst text
 
+labelToText = \case
+  LBNF.LabNoP labelId -> lowerFirst $ labelIdToText labelId
+  _ -> undefined
+
+labelIdToText = \case
+  LBNF.Id id' -> ident id'
+  _ -> undefined
+
+ident (LBNF.Ident text) = text
+
 lowerFirst = \case (first : rest) -> toLower first : rest; text -> text
  
 collectLiterals = \case
-  TreeSitter.Rule _id' rule -> collectLiterals rule
   TreeSitter.Choice rules -> concatMap collectLiterals rules
   TreeSitter.Seq rules -> concatMap collectLiterals rules
   TreeSitter.Repeat rule -> collectLiterals rule
@@ -101,7 +124,6 @@ collectLiterals = \case
   
 substLiteral from to = go where
   go = \case
-    TreeSitter.Rule id' rule -> TreeSitter.Rule id' (go rule)
     TreeSitter.Choice rules -> TreeSitter.Choice (map go rules)
     TreeSitter.Seq rules -> TreeSitter.Seq (map go rules)
     TreeSitter.Repeat rule -> TreeSitter.Repeat (go rule)
@@ -116,7 +138,6 @@ substLiteral from to = go where
 
 substSymbol from to = go where
   go = \case
-    TreeSitter.Rule id' rule -> TreeSitter.Rule id' (go rule)
     TreeSitter.Choice rules -> TreeSitter.Choice (map go rules)
     TreeSitter.Seq rules -> TreeSitter.Seq (map go rules)
     TreeSitter.Repeat rule -> TreeSitter.Repeat (go rule)
