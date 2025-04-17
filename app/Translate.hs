@@ -1,7 +1,7 @@
 module Translate where
 
 import Control.Monad (join)
-import Data.List (groupBy, group)
+import Data.List (groupBy, group, find)
 import Data.Function (on)
 import Util (lowerFirst)
 
@@ -117,13 +117,31 @@ toChoice = \case
   [x] -> x
   xs -> TreeSitter.Choice xs
 
+keywords =
+  [ "module"
+  , "exports"
+  , "grammar"
+  , "const"
+  , "name"
+  , "rules"
+  , "choice"
+  , "seq"
+  , "repeat"
+  , "repeat1"
+  , "optional"
+  ]
+
+changeIfKeyword x = case find (== x) keywords of
+  Just _ -> x <> "0"
+  _ -> x
+
 catToText = \case
   LBNF.ListCat cat -> "_list" <> catToText cat
   LBNF.IdCat id' -> case ident id' of
-    text -> "_" <> lowerFirst text
+    text -> "_" <> changeIfKeyword (lowerFirst text)
 
 labelToText = \case
-  LBNF.LabNoP labelId -> lowerFirst $ labelIdToText labelId
+  LBNF.LabNoP labelId -> changeIfKeyword . lowerFirst $ labelIdToText labelId
   _ -> undefined
 
 labelIdToText = \case
