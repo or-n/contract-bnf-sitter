@@ -16,7 +16,7 @@ import qualified PrintTreeSitter as TreeSitter
 
 import Translate
 
-main = go "bar" LBNF
+main = go "sep" TreeSitter
 
 lbnf = LBNF.pGrammar . LBNF.myLexer
 treeSitter = TreeSitter.pGrammar . TreeSitter.myLexer
@@ -30,6 +30,7 @@ samplesLBNF =
   , ("const", "const.cf")
   , ("predefined", "predefined.cf")
   , ("bar", "bar.cf")
+  , ("sep", "sep.cf")
   ]
 
 samplesTreeSitter =
@@ -39,6 +40,7 @@ samplesTreeSitter =
   , ("const", "const.js")
   , ("predefined", "predefined.js")
   , ("bar", "bar.js")
+  , ("sep", "sep.js")
   ]
 
 data Input = LBNF | TreeSitter

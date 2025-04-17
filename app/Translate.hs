@@ -1,7 +1,7 @@
 module Translate where
 
 import Control.Monad (join)
-import Data.List (groupBy, group, partition)
+import Data.List (groupBy, group)
 import Data.Function (on)
 import Util (lowerFirst)
 
@@ -14,21 +14,44 @@ mkGrammar name constDecls rules = TreeSitter.Grammar (TreeSitter.Preamble constD
 translate grammar =
   let
     defs = definitions grammar
-    (rules, _notRules) = partition isRule defs
+    rules = filter isRule defs
+    separators = filter isSeparator defs
   in
     uncurry (mkGrammar "grammar")
     . consts
     . map (mapRuleExpression substPredefined)
     . join
+    . (map translateSeparator separators :)
     . map pushChoiceRule
     . groupBy ((==) `on` fst)
     . map translateRule
     $ rules
 
+translateSeparator = \case
+  LBNF.Separator minSize cat text ->
+    let
+      catId = TreeSitter.Id $ catToText cat
+      id' = TreeSitter.Id . catToText $ LBNF.ListCat cat
+      basicExpr = TreeSitter.Seq
+        [ TreeSitter.Symbol catId
+        , TreeSitter.Repeat $ TreeSitter.Seq
+            [ TreeSitter.Literal text
+            , TreeSitter.Symbol catId
+            ] 
+        ]
+      expr = case minSize of
+        LBNF.MNonempty -> basicExpr
+        LBNF.MEmpty -> TreeSitter.Optional basicExpr
+    in
+      TreeSitter.Rule id' expr
+  _ -> undefined
+
 mapRuleExpression f (TreeSitter.Rule id' expression) =
   TreeSitter.Rule id' (f expression)
 
 isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
+
+isSeparator = \case LBNF.Separator _ _ _ -> True; _ -> False
 
 substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
   . substSymbol (TreeSitter.Id "_double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
@@ -38,23 +61,20 @@ substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
 
 regex x = TreeSitter.Regex . TreeSitter.RegEx $ "/" <> x <> "/"
 
-constDecl (literal, id') = TreeSitter.ConstDecl id' literal 
-
 consts rules =
   let
     shouldMkConst (_literal, count) = count >= 2
-    literalGroups = map (\(literal, _count) -> (literal, constId literal)) 
+    literalGroups = map (\(literal, _count) -> (TreeSitter.Id literal, literal)) 
       $ filter shouldMkConst
       $ map (\xs -> (head xs, length xs))
       $ group
       $ concatMap (collectLiterals . ruleExpression)
       $ rules
-    substLiteralId (literal, id') = substLiteral literal (TreeSitter.Const id')
+    substLiteralId (id', literal) = substLiteral literal (TreeSitter.Const id')
     subst expression = foldr substLiteralId expression literalGroups
+    constDecl = uncurry TreeSitter.ConstDecl
   in
     (map constDecl literalGroups, map (mapRuleExpression subst) rules)
-
-constId literal = TreeSitter.Id literal
 
 translateRule = \case
   LBNF.Rule label cat items ->
@@ -87,17 +107,20 @@ pushChoiceRule xs =
     ids = map ruleId rules
     id' = TreeSitter.Id (catToText cat)
     rule = TreeSitter.Rule id'
-      $ TreeSitter.Choice
+      $ toChoice
       $ map TreeSitter.Symbol
       $ ids
   in
     rule : rules
 
+toChoice = \case
+  [x] -> x
+  xs -> TreeSitter.Choice xs
+
 catToText = \case
-  LBNF.ListCat cat -> "List" <> catToText cat
-  LBNF.IdCat (LBNF.Ident text) -> case text of
-    "Grammar" -> "grammar"
-    _ -> "_" <> lowerFirst text
+  LBNF.ListCat cat -> "_list" <> catToText cat
+  LBNF.IdCat id' -> case ident id' of
+    text -> "_" <> lowerFirst text
 
 labelToText = \case
   LBNF.LabNoP labelId -> lowerFirst $ labelIdToText labelId
@@ -114,15 +137,11 @@ collectLiterals = \case
   x -> foldExpression (concatMap collectLiterals) collectLiterals [] x
   
 substLiteral from to = \case
-  TreeSitter.Literal text -> if text == from
-    then to
-    else TreeSitter.Literal text
+  TreeSitter.Literal text | text == from -> to
   x -> mapExpression (substLiteral from to) x
 
 substSymbol from to = \case
-  TreeSitter.Symbol id' -> if id' == from
-    then to
-    else TreeSitter.Symbol id'
+  TreeSitter.Symbol id' | id' == from -> to
   x -> mapExpression (substSymbol from to) x
 
 mapExpression f = \case

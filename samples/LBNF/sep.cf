@@ -1,0 +1,4 @@
+Grammar. Grammar ::= [A] ;
+
+A. A ::= Ident ;
+separator A "," ;

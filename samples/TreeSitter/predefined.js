@@ -2,7 +2,7 @@ module . exports = grammar (
 {
   name : "grammar", rules :
   {
-    grammar : $ => choice ($ . Integer, $ . Double, $ . Char, $ . String, $ . Ident), Integer : $ => seq ("Integer", /[0-9]+/), Double : $ => seq ("Double", /[0-9]+\.[0-9]+(e-?[0-9]+)?/), Char : $ => seq ("Char", /'([^'\\]|\\[tnrf])'/), String : $ => seq ("String", /"([^"\\]|\\[tnrf])*"/), Ident : $ => seq ("Ident", /[a-zA-z][a-zA-z0-9_']*/),
+    grammar : $ => choice ($ . integer, $ . double, $ . char, $ . string, $ . ident), integer : $ => seq ("Integer", /[0-9]+/), double : $ => seq ("Double", /[0-9]+\.[0-9]+(e-?[0-9]+)?/), char : $ => seq ("Char", /'([^'\\]|\\[tnrf])'/), string : $ => seq ("String", /"([^"\\]|\\[tnrf])*"/), ident : $ => seq ("Ident", /[a-zA-z][a-zA-z0-9_']*/),
   }
   ,
 }
