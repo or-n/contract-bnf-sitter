@@ -1,4 +1,8 @@
-Grammar. Grammar ::= [A] ;
+A. Grammar ::= "A" [A] ;
+B. Grammar ::= "B" [B] ;
 
 A. A ::= Ident ;
 separator A "," ;
+
+B. B ::= Ident ;
+terminator B "," ;

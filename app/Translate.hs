@@ -16,12 +16,14 @@ translate grammar =
     defs = definitions grammar
     rules = filter isRule defs
     separators = filter isSeparator defs
+    terminators = filter isTerminator defs
   in
     uncurry (mkGrammar "grammar")
     . consts
     . map (mapRuleExpression substPredefined)
     . join
     . (map translateSeparator separators :)
+    . (map translateTerminator terminators :)
     . map pushChoiceRule
     . groupBy ((==) `on` fst)
     . map translateRule
@@ -46,12 +48,28 @@ translateSeparator = \case
       TreeSitter.Rule id' expr
   _ -> undefined
 
+translateTerminator = \case
+  LBNF.Terminator minSize cat text ->
+    let
+      catId = TreeSitter.Id $ catToText cat
+      id' = TreeSitter.Id . catToText $ LBNF.ListCat cat
+      basicExpr = TreeSitter.Seq
+        [ TreeSitter.Symbol catId
+        , TreeSitter.Literal text
+        ]
+      expr = case minSize of
+        LBNF.MNonempty -> TreeSitter.Repeat basicExpr
+        LBNF.MEmpty -> TreeSitter.Repeat1 basicExpr
+    in
+      TreeSitter.Rule id' expr
+  _ -> undefined
+
 mapRuleExpression f (TreeSitter.Rule id' expression) =
   TreeSitter.Rule id' (f expression)
 
 isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
-
 isSeparator = \case LBNF.Separator _ _ _ -> True; _ -> False
+isTerminator = \case LBNF.Terminator _ _ _ -> True; _ -> False
 
 substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
   . substSymbol (TreeSitter.Id "_double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
