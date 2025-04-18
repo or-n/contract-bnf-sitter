@@ -1,5 +1,5 @@
-A. Grammar ::= "A" [A] ;
-B. Grammar ::= "B" [B] ;
+A. Top ::= "A" [A] ;
+B. Top ::= "B" [B] ;
 
 A. A ::= Ident ;
 separator A "," ;

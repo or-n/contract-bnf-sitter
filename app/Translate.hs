@@ -8,60 +8,59 @@ import Util (lowerFirst)
 import qualified AbsLBNF as LBNF
 import qualified AbsTreeSitter as TreeSitter
 
+data TranslationError
+  = Keyword String
+  deriving Show
+
 mkGrammar name constDecls rules = TreeSitter.Grammar (TreeSitter.Preamble constDecls)
   $ TreeSitter.GrammarBody (TreeSitter.Name name) (TreeSitter.Rules rules)
 
-translate grammar =
+translate grammar = do
   let
     defs = definitions grammar
     rules = filter isRule defs
-    separators = filter isSeparator defs
-    terminators = filter isTerminator defs
-  in
-    uncurry (mkGrammar "grammar")
+  separators <- mapM translateSeparator $ filter isSeparator defs
+  terminators <- mapM translateTerminator $ filter isTerminator defs
+  catRules <- mapM translateRule rules
+  let ruleGroups = groupBy ((==) `on` fst) catRules
+  catRules' <- mapM pushChoiceRule ruleGroups 
+  pure $ uncurry (mkGrammar "grammar")
     . consts
     . map (mapRuleExpression substPredefined)
     . join
-    . (map translateSeparator separators :)
-    . (map translateTerminator terminators :)
-    . map pushChoiceRule
-    . groupBy ((==) `on` fst)
-    . map translateRule
-    $ rules
+    $ [separators, terminators] <> catRules'
 
 translateSeparator = \case
-  LBNF.Separator minSize cat text ->
+  LBNF.Separator minSize cat text -> do
+    catId <- catToText cat
+    id' <- catToText $ LBNF.ListCat cat
     let
-      catId = TreeSitter.Id $ catToText cat
-      id' = TreeSitter.Id . catToText $ LBNF.ListCat cat
       basicExpr = TreeSitter.Seq
-        [ TreeSitter.Symbol catId
+        [ TreeSitter.Symbol (TreeSitter.Id catId)
         , TreeSitter.Repeat $ TreeSitter.Seq
             [ TreeSitter.Literal text
-            , TreeSitter.Symbol catId
+            , TreeSitter.Symbol (TreeSitter.Id catId)
             ] 
         ]
       expr = case minSize of
         LBNF.MNonempty -> basicExpr
         LBNF.MEmpty -> TreeSitter.Optional basicExpr
-    in
-      TreeSitter.Rule id' expr
+    pure $ TreeSitter.Rule (TreeSitter.Id id') expr
   _ -> undefined
 
 translateTerminator = \case
-  LBNF.Terminator minSize cat text ->
+  LBNF.Terminator minSize cat text -> do
+    catId <- catToText cat
+    id' <- catToText $ LBNF.ListCat cat
     let
-      catId = TreeSitter.Id $ catToText cat
-      id' = TreeSitter.Id . catToText $ LBNF.ListCat cat
       basicExpr = TreeSitter.Seq
-        [ TreeSitter.Symbol catId
+        [ TreeSitter.Symbol (TreeSitter.Id catId)
         , TreeSitter.Literal text
         ]
       expr = case minSize of
         LBNF.MNonempty -> TreeSitter.Repeat basicExpr
         LBNF.MEmpty -> TreeSitter.Repeat1 basicExpr
-    in
-      TreeSitter.Rule id' expr
+    pure $ TreeSitter.Rule (TreeSitter.Id id') expr
   _ -> undefined
 
 mapRuleExpression f (TreeSitter.Rule id' expression) =
@@ -97,13 +96,11 @@ consts rules =
     (map constDecl literalGroups, map (mapRuleExpression subst) rules)
 
 translateRule = \case
-  LBNF.Rule label cat items ->
-    let
-      rule = TreeSitter.Rule
-        (TreeSitter.Id (labelToText label))
-        (toSeq (map itemToExpression items))
-    in
-      (cat, rule)
+  LBNF.Rule label cat items -> do
+    items' <- mapM itemToExpression items
+    id' <- labelToText label
+    let rule = TreeSitter.Rule (TreeSitter.Id id') (toSeq items')
+    pure (cat, rule)
   _ -> undefined
 
 definitions (LBNF.MkGrammar defs) = defs
@@ -113,25 +110,27 @@ toSeq = \case
   xs -> TreeSitter.Seq xs
 
 itemToExpression = \case
-  LBNF.Terminal text -> TreeSitter.Literal text
-  LBNF.NTerminal cat -> TreeSitter.Symbol (TreeSitter.Id (catToText cat))
+  LBNF.Terminal text -> pure $ TreeSitter.Literal text
+  LBNF.NTerminal cat -> do
+    text <- catToText cat
+    pure . TreeSitter.Symbol $ TreeSitter.Id text
 
 ruleId (TreeSitter.Rule id' _) = id'
 
 ruleExpression (TreeSitter.Rule _ expression) = expression
 
-pushChoiceRule xs =
+pushChoiceRule xs = do
   let
     cat = fst (head xs)
     rules = map snd xs
     ids = map ruleId rules
-    id' = TreeSitter.Id (catToText cat)
-    rule = TreeSitter.Rule id'
+  id' <- catToText cat
+  let
+    rule = TreeSitter.Rule (TreeSitter.Id id')
       $ toChoice
       $ map TreeSitter.Symbol
       $ ids
-  in
-    rule : rules
+  pure (rule : rules)
 
 toChoice = \case
   [x] -> x
@@ -151,17 +150,23 @@ keywords =
   , "optional"
   ]
 
-changeIfKeyword x = case find (== x) keywords of
-  Just _ -> x <> "0"
-  _ -> x
+guardNotKeyword x = case find (== x) keywords of
+  Just keyword -> Left $ Keyword keyword
+  _ -> pure x
 
+catToText :: LBNF.Cat -> Either TranslationError String
 catToText = \case
-  LBNF.ListCat cat -> "_list" <> catToText cat
-  LBNF.IdCat id' -> case ident id' of
-    text -> "_" <> changeIfKeyword (lowerFirst text)
+  LBNF.ListCat cat -> do
+    text <- catToText cat
+    pure ("_list" <> text)
+  LBNF.IdCat id' -> do
+    text <- guardNotKeyword . lowerFirst $ ident id'
+    pure ("_" <> text)
 
 labelToText = \case
-  LBNF.LabNoP labelId -> changeIfKeyword . lowerFirst $ labelIdToText labelId
+  LBNF.LabNoP labelId -> do
+    let text = lowerFirst $ labelIdToText labelId
+    guardNotKeyword text
   _ -> undefined
 
 labelIdToText = \case

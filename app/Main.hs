@@ -61,18 +61,23 @@ go sampleId = \case
     input <- readFile $ dirLBNF <> sample
     case lbnf input of
       Right tree -> do
-        putStrLn "Parsed successfully!"
+        putStrLn "Parsed successfully!\n"
         putStrLn (printTree tree)
-        let t = translate tree
-        let str = printTree t
-        putStrLn str
-        writeFile (dirTreeSitter <> sampleId <> ".js") str
-      Left err -> putStrLn $ "Parse error:\n" ++ err
+        putStrLn ""
+        let r = translate tree
+        case r of
+          Right t -> do
+            putStrLn "Translated successfully!\n"
+            let str = printTree t
+            putStrLn str
+            writeFile (dirTreeSitter <> sampleId <> ".js") str
+          Left err -> putStrLn $ "Translation error:\n" <> show err
+      Left err -> putStrLn $ "Parse error:\n" <> err
   TreeSitter -> do
     let sample = fromMaybe "" $ lookup sampleId samplesTreeSitter
     input <- readFile $ dirTreeSitter <> sample
     case treeSitter input of
       Right tree -> do
-        putStrLn "Parsed successfully!"
+        putStrLn "Parsed successfully!\n"
         putStrLn (printTree tree)
-      Left err -> putStrLn $ "Parse error:\n" ++ err
+      Left err -> putStrLn $ "Parse error:\n" <> err
