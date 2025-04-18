@@ -81,8 +81,10 @@ regex x = TreeSitter.Regex . TreeSitter.RegEx $ "/" <> x <> "/"
 
 consts rules =
   let
-    shouldMkConst (_literal, count) = count >= 2
-    literalGroups = map (\(literal, _count) -> (TreeSitter.Id literal, literal)) 
+    constId i = TreeSitter.Id ("c" <> show i)
+    shouldMkConst (literal, count) = length literal > 3 && count >= 2
+    literalGroups = map (\(i, (literal, _count)) -> (constId i, literal)) 
+      $ zip [(0 :: Int)..]
       $ filter shouldMkConst
       $ map (\xs -> (head xs, length xs))
       $ group
