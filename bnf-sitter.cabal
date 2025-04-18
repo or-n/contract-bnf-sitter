@@ -13,42 +13,82 @@ extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
 
 common warnings
-    ghc-options: -Wall -Wno-missing-signatures
+  ghc-options: -Wall -Wno-missing-signatures
+
+library
+  import:            warnings
+  exposed-modules:   Translate
+  other-modules:
+    ErrM
+    AbsLBNF
+    ParLBNF
+    PrintLBNF
+    SkelLBNF
+    LexLBNF
+    AbsTreeSitter
+    ParTreeSitter
+    PrintTreeSitter
+    SkelTreeSitter
+    LexTreeSitter
+    AbsRustRegex
+    ParRustRegex
+    PrintRustRegex
+    SkelRustRegex
+    LexRustRegex
+    Util
+  build-depends:
+    base,
+    array
+  hs-source-dirs:
+    app,
+    LBNF,
+    TreeSitter,
+    RustRegex
+  build-tool-depends:
+    happy:happy,
+    alex:alex
+  default-language: Haskell2010
+  default-extensions: LambdaCase
 
 executable bnf-sitter
-    import:           warnings
-    main-is:          Main.hs
-    other-modules:
-      ErrM
-      AbsLBNF
-      ParLBNF
-      PrintLBNF
-      SkelLBNF
-      LexLBNF
-      AbsTreeSitter
-      ParTreeSitter
-      PrintTreeSitter
-      SkelTreeSitter
-      LexTreeSitter
-      AbsRustRegex
-      ParRustRegex
-      PrintRustRegex
-      SkelRustRegex
-      LexRustRegex
-      Translate
-      Util
-    -- other-extensions:
-    build-depends:
-        base ^>=4.18.2.1,
-        array
-    hs-source-dirs:
-        app,
-        LBNF,
-        TreeSitter,
-        RustRegex,
-    build-tool-depends:
-        happy:happy,
-        alex:alex
-    default-language: Haskell2010
-    default-extensions:
-        LambdaCase
+  import:           warnings
+  main-is:          Main.hs
+  other-modules:
+    AbsLBNF
+    AbsTreeSitter
+    LexLBNF
+    LexTreeSitter
+    ParLBNF
+    ParTreeSitter
+    PrintLBNF
+    PrintTreeSitter
+    Translate
+    Util
+  build-depends:
+    base ^>=4.18.2.1,
+    array,
+    bnf-sitter
+  hs-source-dirs:
+    app,
+    LBNF,
+    TreeSitter,
+    RustRegex,
+  build-tool-depends:
+    happy:happy,
+    alex:alex
+  default-language: Haskell2010
+  default-extensions: LambdaCase
+
+test-suite spec
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       
+    base ^>=4.18.2.1,
+    hspec,
+    QuickCheck,
+    bnf-sitter,
+    process,
+    directory,
+  default-language:    Haskell2010
+  default-extensions: LambdaCase
