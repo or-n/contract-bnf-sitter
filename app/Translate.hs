@@ -1,8 +1,9 @@
 module Translate where
 
-import Control.Monad (join)
+import Control.Monad (join, when)
 import Data.List (groupBy, group, find)
 import Data.Function (on)
+import Data.Maybe (isJust)
 import Util (lowerFirst)
 
 import qualified AbsLBNF as LBNF
@@ -127,7 +128,11 @@ toChoice = \case
   [x] -> x
   xs -> TreeSitter.Choice xs
 
-keywords =
+keywordsLBNF =
+  [ "Ident"
+  ]
+
+keywordsTreeSitter =
   [ "module"
   , "exports"
   , "grammar"
@@ -141,20 +146,25 @@ keywords =
   , "optional"
   ]
 
-guardNotKeyword x = case find (== x) keywords of
-  Just keyword -> Left $ Keyword keyword
-  _ -> pure x
+guardNotKeyword x = do
+  when (isJust $ find (== x) keywordsTreeSitter) $ do
+    Left $ Keyword x
+  when (isJust $ find (== x) keywordsLBNF) $ do
+    Left $ Keyword x
+  pure x
 
 catToId = fmap TreeSitter.Id . catToText
 
 catToText = \case
   LBNF.ListCat cat -> ("_list" <>) <$> catToText cat
-  LBNF.IdCat id' -> fmap ("_" <>) . guardNotKeyword . lowerFirst $ ident id'
+  LBNF.IdCat id' -> do
+    text <- guardNotKeyword . lowerFirst $ ident id'
+    if text == "top"
+      then pure text
+      else pure $ "_" <> text
 
 labelToText = \case
-  LBNF.LabNoP labelId -> do
-    let text = lowerFirst $ labelIdToText labelId
-    guardNotKeyword text
+  LBNF.LabNoP labelId -> fmap lowerFirst . guardNotKeyword $ labelIdToText labelId
   _ -> undefined
 
 labelIdToText = \case

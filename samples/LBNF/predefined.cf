@@ -1,5 +1,5 @@
-Integer. Grammar ::= "Integer" Integer ;
-Double. Grammar ::= "Double" Double ;
-Char. Grammar ::= "Char" Char ;
-String. Grammar ::= "String" String ;
-Ident. Grammar ::= "Ident" Ident ;
+Integer. Top ::= "Integer" Integer ;
+Double. Top ::= "Double" Double ;
+Char. Top ::= "Char" Char ;
+String. Top ::= "String" String ;
+IdentT. Top ::= "Ident" Ident ;
