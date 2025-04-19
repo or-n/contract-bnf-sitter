@@ -1,7 +1,10 @@
 import Test.Hspec
+import Test.QuickCheck
 
 import System.Process (callProcess, readProcess)
 import System.Directory
+
+import qualified GenLBNF
 
 runGenerateTreeSitter = callProcess "tree-sitter" ["generate"]
 
@@ -57,3 +60,6 @@ main = hspec $ do
           [ "(top [0, 0] - [1, 0]"
           , "  (char [0, 0] - [0, 8]))"
           ]
+  describe "arbitrary" $ do
+    it "generates Char" $ property $ \(GenLBNF.PredefinedChar x) ->
+      GenLBNF.check (GenLBNF.PredefinedChar x)
