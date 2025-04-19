@@ -7,7 +7,7 @@ runGenerateTreeSitter = callProcess "tree-sitter" ["generate"]
 
 runParseTreeSitter path = readProcess "tree-sitter" ["parse", path] ""
 
-runGenerateLBNF path = callProcess "bnfc" ["-haskell", "--makefile", path]
+runGenerateLBNF path = callProcess "bnfc" ["--haskell", "--makefile", path]
 
 runParseLBNF name path = readProcess ("./" <> name) [path] ""
 
@@ -29,31 +29,31 @@ rm = do
   setCurrentDirectory "../"
   removePathForcibly tmp
 
-expectLBNF = unlines
-  [ "../samples/predefined/char_a"
-  , ""
-  , "Parse Successful!"
-  , ""
-  , "[Abstract Syntax]"
-  , ""
-  , "Char 'a'"
-  , ""
-  , "[Linearized tree]"
-  , ""
-  , "Char 'a'"  
-  ]
-
 main = hspec $ do
   before (genLBNF "samples/LBNF/predefined.cf")
     $ after_ rm
     $ describe "LBNF parse" $ do
       it "predefined/char_a" $ do
         output <- runParseLBNF "TestPredefined" "../samples/predefined/char_a"
-        output `shouldBe` expectLBNF
+        output `shouldBe` unlines
+          [ "../samples/predefined/char_a"
+          , ""
+          , "Parse Successful!"
+          , ""
+          , "[Abstract Syntax]"
+          , ""
+          , "Char 'a'"
+          , ""
+          , "[Linearized tree]"
+          , ""
+          , "Char 'a'"  
+          ]
   before (genTreeSitter "samples/TreeSitter/predefined.js")
     $ after_ rm
     $ describe "TreeSitter parse" $ do
       it "predefined/char_a" $ do
         output <- runParseTreeSitter "../samples/predefined/char_a"
-        let expect = "(top [0, 0] - [1, 0]\n  (char [0, 0] - [0, 8]))\n"
-        output `shouldBe` expect
+        output `shouldBe` unlines
+          [ "(top [0, 0] - [1, 0]"
+          , "  (char [0, 0] - [0, 8]))"
+          ]
