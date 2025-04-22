@@ -1,5 +1,6 @@
 module GenLBNF where
 
+import Control.Monad (when)
 import Test.QuickCheck (Arbitrary(..), Gen)
 import Data.Char (isPrint)
 
@@ -24,9 +25,13 @@ instance Arbitrary PredefinedChar where
       x = if c `elem` special
         then ['\\', toRegular c]
         else [c]
-    pure $ PredefinedChar $ "'" <> x <> "'"
+    if isPrint c
+      then pure (PredefinedChar x)
+      else arbitrary
 
-check (PredefinedChar x) = case x of
-  ['\'', c, '\''] -> c `notElem` ['\'', '\\']
-  ['\'', '\\', c, '\''] -> c `elem` (map toRegular special)
+wrapChar x = "'" <> x <> "'"
+
+check x = case x of
+  [c] -> c `notElem` ['\'', '\\']
+  ['\\', c] -> c `elem` map toRegular special
   _ -> False

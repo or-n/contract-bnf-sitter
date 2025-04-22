@@ -32,34 +32,57 @@ rm = do
   setCurrentDirectory "../"
   removePathForcibly tmp
 
+outputLBNF path tree linear = unlines
+  [ path
+  , ""
+  , "Parse Successful!"
+  , ""
+  , "[Abstract Syntax]"
+  , ""
+  , tree
+  , ""
+  , "[Linearized tree]"
+  , ""
+  , linear
+  ]
+
+unquote = tail . init
+
+fix "\\\\" = "\\\\"
+fix "\\\'" = "\\\'"
+fix "\"" = "\""
+fix x = unquote (show x)
+
+outputTreeSitter top_a top_b n = unlines
+  [ "(top [0, 0] - [" <> show top_a <> ", " <> show top_b <> "]"
+  , "  (char [0, 0] - [0, " <> show n <> "]))"
+  ]
+
 main = hspec $ do
-  before (genLBNF "samples/LBNF/predefined.cf")
-    $ after_ rm
+  describe "arbitrary" $ do
+    it "valid Char" $ property $ \(GenLBNF.PredefinedChar x) ->
+      GenLBNF.check x
+  beforeAll (genLBNF "samples/LBNF/predefined.cf")
+    $ afterAll_ rm
     $ describe "LBNF parse" $ do
       it "predefined/char_a" $ do
         output <- runParseLBNF "TestPredefined" "../samples/predefined/char_a"
-        output `shouldBe` unlines
-          [ "../samples/predefined/char_a"
-          , ""
-          , "Parse Successful!"
-          , ""
-          , "[Abstract Syntax]"
-          , ""
-          , "Char 'a'"
-          , ""
-          , "[Linearized tree]"
-          , ""
-          , "Char 'a'"  
-          ]
-  before (genTreeSitter "samples/TreeSitter/predefined.js")
-    $ after_ rm
+        output `shouldBe` outputLBNF "../samples/predefined/char_a" "Char 'a'" "Char 'a'"
+      it "predefined: arbitrary char" $ property $ \(GenLBNF.PredefinedChar x) -> do
+        let input = "Char " <> GenLBNF.wrapChar x
+        writeFile "input" input
+        output <- runParseLBNF "TestPredefined" "input"
+        let abstract = "Char " <> GenLBNF.wrapChar (fix x)
+        let linear = "Char " <> GenLBNF.wrapChar x
+        output `shouldBe` outputLBNF "input" abstract linear
+  beforeAll (genTreeSitter "samples/TreeSitter/predefined.js")
+    $ afterAll_ rm
     $ describe "TreeSitter parse" $ do
       it "predefined/char_a" $ do
         output <- runParseTreeSitter "../samples/predefined/char_a"
-        output `shouldBe` unlines
-          [ "(top [0, 0] - [1, 0]"
-          , "  (char [0, 0] - [0, 8]))"
-          ]
-  describe "arbitrary" $ do
-    it "generates Char" $ property $ \(GenLBNF.PredefinedChar x) ->
-      GenLBNF.check (GenLBNF.PredefinedChar x)
+        output `shouldBe` outputTreeSitter 1 0 8
+      -- it "predefined: arbitrary char" $ property $ \(GenLBNF.PredefinedChar x) -> do
+      --   let input = "Char " <> GenLBNF.wrapChar x
+      --   writeFile "input" input
+      --   output <- runParseTreeSitter "input"
+      --   output `shouldBe` outputTreeSitter 0 (length input) (length input)        
