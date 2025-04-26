@@ -1,11 +1,12 @@
 module GenLBNF where
 
 import Control.Monad (when)
-import Test.QuickCheck (Arbitrary(..), Gen, vectorOf, chooseInt)
-import Data.Char (isPrint, ord)
+import Test.QuickCheck (Arbitrary(..), Gen, vectorOf, chooseInt, suchThat)
+import Data.Char (isPrint, ord, isLetter, isDigit)
 
-data PredefinedChar = PredefinedChar String
-data PredefinedStringChar = PredefinedStringChar String
+newtype PredefinedChar = PredefinedChar String
+newtype PredefinedStringChar = PredefinedStringChar String
+newtype PredefinedIdentChar = PredefinedIdentChar Char deriving Show
 
 instance Show PredefinedChar where
   show (PredefinedChar x) = wrap [apostrophe] x
@@ -27,28 +28,32 @@ toRegular = \case
 isBMPP c = ord c <= 0xFFFF
 
 arbitraryChar wrapChar = do
-    c <- arbitrary
-    let
-      x = if c `elem` (wrapChar : special)
+    c <- arbitrary `suchThat` (\c -> isPrint c && isBMPP c)
+    pure $ if c `elem` (wrapChar : special)
         then ['\\', toRegular c]
         else [c]
-    if isPrint c
-      then pure x
-      else arbitraryChar wrapChar
 
-instance Arbitrary (PredefinedChar) where
+instance Arbitrary PredefinedChar where
   arbitrary = PredefinedChar <$> arbitraryChar apostrophe
-instance Arbitrary (PredefinedStringChar) where
+instance Arbitrary PredefinedStringChar where
   arbitrary = PredefinedStringChar <$> arbitraryChar quote
+instance Arbitrary PredefinedIdentChar where
+  arbitrary = PredefinedIdentChar <$> arbitrary `suchThat` checkIdentChar
 
 wrap c x = c <> x <> c
 
 check wrapChar x = case x of
-  [c] -> isPrint c && c `notElem` [wrapChar, '\\']
+  [c] -> isPrint c && isBMPP c && c `notElem` [wrapChar, '\\']
   ['\\', c] -> c `elem` map toRegular (wrapChar : special)
   _ -> False
 
-data PredefinedString = PredefinedString String
+checkIdentChar c = isLetter c || isDigit c || c `elem` ['_', apostrophe]
+
+checkIdent = \case
+  x : xs -> isLetter x && all checkIdentChar xs
+  _ -> False 
+
+newtype PredefinedString = PredefinedString String
 
 instance Show PredefinedString where
   show (PredefinedString x) = wrap [quote] x
@@ -59,3 +64,12 @@ instance Arbitrary PredefinedString where
     chars <- vectorOf n arbitrary
     pure . PredefinedString $ concat [x | PredefinedStringChar x <- chars]
   
+newtype PredefinedIdent = PredefinedIdent String
+  deriving Show
+
+instance Arbitrary PredefinedIdent where
+  arbitrary = do
+    x <- arbitrary `suchThat` isLetter
+    n <- chooseInt (0, 10)
+    chars <- vectorOf n arbitrary
+    pure $ PredefinedIdent $ x : [x | PredefinedIdentChar x <- chars]

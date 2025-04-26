@@ -67,6 +67,8 @@ main = hspec $ do
       check apostrophe x
     it "valid StringChar" $ property $ \(PredefinedStringChar x) ->
       check quote x
+    it "valid Ident" $ property $ \(PredefinedIdent x) ->
+      checkIdent x
   beforeAll (genLBNF "samples/LBNF/predefined.cf")
     $ afterAll_ rm
     $ describe "LBNF parse" $ do
