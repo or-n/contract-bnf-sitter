@@ -72,7 +72,7 @@ isTerminator = \case LBNF.Terminator _ _ _ -> True; _ -> False
 substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
   . substSymbol (TreeSitter.Id "_double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
   . substSymbol (TreeSitter.Id "_char") (regex "'([^'\\\\]|\\\\['\\\\tnrf])'")
-  . substSymbol (TreeSitter.Id "_string") (regex "\"([^\"\\\\]|\\\\['\\\\tnrf])*\"")
+  . substSymbol (TreeSitter.Id "_string") (regex "\"([^\"\\\\]|\\\\[\"\\\\tnrf])*\"")
   . substSymbol (TreeSitter.Id "_ident") (regex "[a-zA-z][a-zA-z0-9_']*")
 
 regex x = TreeSitter.Regex . TreeSitter.RegEx $ "/" <> x <> "/"
