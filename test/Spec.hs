@@ -69,6 +69,10 @@ main = hspec $ do
       check quote x
     it "valid Ident" $ property $ \(PredefinedIdent x) ->
       checkIdent x
+    it "valid Integer" $ property $ \(PredefinedInteger x) ->
+      checkInteger x
+    it "valid Double" $ property $ \x ->
+      checkDouble (show (x :: PredefinedDouble))
   beforeAll (genLBNF "samples/LBNF/predefined.cf")
     $ afterAll_ rm
     $ describe "LBNF parse" $ do
