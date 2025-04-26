@@ -5,6 +5,9 @@ import System.Process (callProcess, readProcess)
 import System.Directory
 
 import qualified GenLBNF
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import qualified Data.ByteString as BS
 
 runGenerateTreeSitter = callProcess "tree-sitter" ["generate"]
 
@@ -81,8 +84,9 @@ main = hspec $ do
       it "predefined/char_a" $ do
         output <- runParseTreeSitter "../samples/predefined/char_a"
         output `shouldBe` outputTreeSitter 1 0 8
-      -- it "predefined: arbitrary char" $ property $ \(GenLBNF.PredefinedChar x) -> do
-      --   let input = "Char " <> GenLBNF.wrapChar x
-      --   writeFile "input" input
-      --   output <- runParseTreeSitter "input"
-      --   output `shouldBe` outputTreeSitter 0 (length input) (length input)        
+      it "predefined: arbitrary char" $ property $ \(GenLBNF.PredefinedChar x) -> do
+        let input = "Char " <> GenLBNF.wrapChar x
+        let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
+        writeFile "input" input
+        output <- runParseTreeSitter "input"
+        output `shouldBe` outputTreeSitter 0 n n        
