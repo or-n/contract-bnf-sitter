@@ -13,22 +13,30 @@ data TranslationError
   = Keyword String
   deriving Show
 
-mkGrammar name constDecls rules = TreeSitter.Grammar (TreeSitter.Preamble constDecls)
-  $ TreeSitter.GrammarBody (TreeSitter.Name name) (TreeSitter.Rules rules)
+mkGrammar name constDecls rules inlines =
+  TreeSitter.Grammar (TreeSitter.Preamble constDecls)
+    $ TreeSitter.GrammarBody
+        (TreeSitter.Name name)
+        (TreeSitter.Rules rules)
+        (TreeSitter.Inlines inlines)
 
 translate grammar = do
   let defs = definitions grammar
-      rules = filter isRule defs
+      rulesLBNF = filter isRule defs
   separators <- mapM translateSeparator $ filter isSeparator defs
   terminators <- mapM translateTerminator $ filter isTerminator defs
-  catRules <- mapM translateRule rules
+  catRules <- mapM translateRule rulesLBNF
   let ruleGroups = groupBy ((==) `on` fst) catRules
-  catRules' <- mapM pushChoiceRule ruleGroups 
-  pure $ uncurry (mkGrammar "grammar")
-    . consts
-    . map (mapRuleExpression substPredefined)
-    . join
-    $ [separators, terminators] <> catRules'
+  catRules' <- mapM pushChoiceRule ruleGroups
+  let top = TreeSitter.Symbol (TreeSitter.Id "top")
+  let sourceFile = TreeSitter.Rule (TreeSitter.Id "source_file") top
+  let (constDecls, rules) =
+        consts
+        . map (mapRuleExpression substPredefined)
+        . join
+        $ [[sourceFile], separators, terminators] <> catRules'
+  let inline = TreeSitter.InlineSymbol (TreeSitter.Id "_list_a")
+  pure $ mkGrammar "grammar" constDecls rules [inline]
 
 translateSeparator = \case
   LBNF.Separator minSize cat text -> do

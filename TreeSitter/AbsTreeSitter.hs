@@ -19,7 +19,13 @@ data Preamble = Preamble [ConstDecl]
 data ConstDecl = ConstDecl Id String
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data GrammarBody = GrammarBody Name Rules
+data GrammarBody = GrammarBody Name Rules Inlines
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data Inlines = Inlines [Inline]
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data Inline = InlineSymbol Id
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Name = Name String

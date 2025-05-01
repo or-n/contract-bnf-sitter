@@ -159,7 +159,20 @@ instance Print [AbsTreeSitter.ConstDecl] where
 
 instance Print AbsTreeSitter.GrammarBody where
   prt i = \case
-    AbsTreeSitter.GrammarBody name rules -> prPrec i 0 (concatD [prt 0 name, doc (showString ","), prt 0 rules, doc (showString ",")])
+    AbsTreeSitter.GrammarBody name rules inlines -> prPrec i 0 (concatD [prt 0 name, doc (showString ","), prt 0 rules, doc (showString ","), prt 0 inlines, doc (showString ",")])
+
+instance Print AbsTreeSitter.Inlines where
+  prt i = \case
+    AbsTreeSitter.Inlines inlines -> prPrec i 0 (concatD [doc (showString "inline"), doc (showString ":"), doc (showString "$"), doc (showString "=>"), doc (showString "["), prt 0 inlines, doc (showString "]")])
+
+instance Print AbsTreeSitter.Inline where
+  prt i = \case
+    AbsTreeSitter.InlineSymbol (AbsTreeSitter.Id id_) ->
+      doc (showString $ "'" ++ id_ ++ "'")
+
+instance Print [AbsTreeSitter.Inline] where
+  prt _ [] = concatD []
+  prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
 
 instance Print AbsTreeSitter.Name where
   prt i = \case

@@ -9,7 +9,11 @@ Preamble. Preamble ::= [ConstDecl] ;
 ConstDecl. ConstDecl ::= "const" Id "=" String ;
 terminator ConstDecl ";" ;
 
-GrammarBody. GrammarBody ::= Name "," Rules "," ;
+GrammarBody. GrammarBody ::= Name "," Rules "," Inlines ",";
+
+Inlines. Inlines ::= "inline" ":" "$" "=>" "[" [Inline] "]" ;
+InlineSymbol. Inline ::= "'" Id "'";
+terminator Inline "," ;
 
 Name. Name ::= "name" ":" String ;
 Rules. Rules ::= "rules" ":" "{" [Rule] "}" ;

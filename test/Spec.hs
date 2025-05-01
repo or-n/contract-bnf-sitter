@@ -92,43 +92,52 @@ main = hspec $ do
       checkInteger x
     it "valid Double" $ property $ \x ->
       checkDouble (show (x :: PredefinedDouble))
-  beforeAll (genLBNF "samples/LBNF/predefined.cf")
-    $ afterAll_ rm
-    $ describe "LBNF parse predefined" $ do
-      it "char_a" $ do
-        output <- runParseLBNF "TestPredefined" predefined_char_a
-        output `shouldBe` outputLBNF predefined_char_a "Char 'a'" "Char 'a'"
-      it "arbitrary char" $ property $ \(PredefinedChar x) -> do
-        let input = "Char " <> wrap [apostrophe] x
-        writeFile "input" input
-        output <- runParseLBNF "TestPredefined" "input"
-        let abstract = "Char " <> wrap [apostrophe] (fix x)
-        let linear = "Char " <> wrap [apostrophe] x
-        output `shouldBe` outputLBNF "input" abstract linear
-  beforeAll (genLBNF "samples/LBNF/sep.cf")
-    $ afterAll_ rm
-    $ describe "LBNF parse sep" $ do
-      it "sep_a" $ do
-        output <- runParseLBNF "TestSep" sep_a
-        putStr output
-        let abstract = "A [MkA (Ident \"a\"),MkA (Ident \"b\"),MkA (Ident \"c\")]"
-        let linear = "A a, b, c"
-        output `shouldBe` outputLBNF sep_a abstract linear
-  beforeAll (genTreeSitter "samples/TreeSitter/predefined.js")
-    $ afterAll_ rm
-    $ describe "TreeSitter parse predefined" $ do
-      it "char_a" $ do
-        output <- runParseTreeSitter predefined_char_a
-        output `shouldBe` outputTreeSitter 1 0 8 "char"
-      it "arbitrary char" $ property $ \(PredefinedChar x) -> do
-        let input = "Char " <> wrap [apostrophe] x
-        let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
-        writeFile "input" input
-        output <- runParseTreeSitter "input"
-        output `shouldBe` outputTreeSitter 0 n n "char"  
-      it "arbitrary string" $ property $ \(PredefinedString x) -> do
-        let input = "String " <> wrap [quote] x
-        let n = 9 + BS.length (TE.encodeUtf8 (T.pack x))
-        writeFile "input" input
-        output <- runParseTreeSitter "input"
-        output `shouldBe` outputTreeSitter 0 n n "string"
+  describe "predefined" $ do
+    beforeAll (genLBNF "samples/LBNF/predefined.cf")
+      $ afterAll_ rm
+      $ describe "LBNF" $ do
+        it "char_a" $ do
+          output <- runParseLBNF "TestPredefined" predefined_char_a
+          output `shouldBe` outputLBNF predefined_char_a "Char 'a'" "Char 'a'"
+        it "arbitrary char" $ property $ \(PredefinedChar x) -> do
+          let input = "Char " <> wrap [apostrophe] x
+          writeFile "input" input
+          output <- runParseLBNF "TestPredefined" "input"
+          let abstract = "Char " <> wrap [apostrophe] (fix x)
+          let linear = "Char " <> wrap [apostrophe] x
+          output `shouldBe` outputLBNF "input" abstract linear
+    beforeAll (genTreeSitter "samples/TreeSitter/predefined.js")
+      $ afterAll_ rm
+      $ describe "TreeSitter" $ do
+        it "char_a" $ do
+          output <- runParseTreeSitter predefined_char_a
+          output `shouldBe` outputTreeSitter 1 0 8 "char"
+        it "arbitrary char" $ property $ \(PredefinedChar x) -> do
+          let input = "Char " <> wrap [apostrophe] x
+          let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
+          writeFile "input" input
+          output <- runParseTreeSitter "input"
+          output `shouldBe` outputTreeSitter 0 n n "char"  
+        it "arbitrary string" $ property $ \(PredefinedString x) -> do
+          let input = "String " <> wrap [quote] x
+          let n = 9 + BS.length (TE.encodeUtf8 (T.pack x))
+          writeFile "input" input
+          output <- runParseTreeSitter "input"
+          output `shouldBe` outputTreeSitter 0 n n "string"
+  describe "sep" $ do
+    beforeAll (genLBNF "samples/LBNF/sep.cf")
+      $ afterAll_ rm
+      $ describe "LBNF" $ do
+        it "sep_a" $ do
+          output <- runParseLBNF "TestSep" sep_a
+          putStr output
+          let abstract = "A [MkA (Ident \"a\"),MkA (Ident \"b\"),MkA (Ident \"c\")]"
+          let linear = "A a, b, c"
+          output `shouldBe` outputLBNF sep_a abstract linear
+    beforeAll (genTreeSitter "samples/TreeSitter/sep.js")
+      $ afterAll_ rm
+      $ describe "TreeSitter" $ do
+        it "sep_a" $ do
+          output <- runParseTreeSitter predefined_char_a
+          output `shouldBe` outputTreeSitter 1 0 8 "char"
+        

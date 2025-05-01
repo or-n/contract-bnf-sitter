@@ -37,7 +37,15 @@ transConstDecl x = case x of
 
 transGrammarBody :: AbsTreeSitter.GrammarBody -> Result
 transGrammarBody x = case x of
-  AbsTreeSitter.GrammarBody name rules -> failure x
+  AbsTreeSitter.GrammarBody name rules inlines -> failure x
+
+transInlines :: AbsTreeSitter.Inlines -> Result
+transInlines x = case x of
+  AbsTreeSitter.Inlines inlines -> failure x
+
+transInline :: AbsTreeSitter.Inline -> Result
+transInline x = case x of
+  AbsTreeSitter.InlineSymbol id -> failure x
 
 transName :: AbsTreeSitter.Name -> Result
 transName x = case x of

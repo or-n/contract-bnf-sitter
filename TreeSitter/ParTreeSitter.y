@@ -13,6 +13,9 @@ module ParTreeSitter
   , pConstDecl
   , pListConstDecl
   , pGrammarBody
+  , pInlines
+  , pInline
+  , pListInline
   , pName
   , pRules
   , pRule
@@ -33,6 +36,9 @@ import LexTreeSitter
 %name pConstDecl ConstDecl
 %name pListConstDecl ListConstDecl
 %name pGrammarBody GrammarBody
+%name pInlines Inlines
+%name pInline Inline
+%name pListInline ListInline
 %name pName Name
 %name pRules Rules
 %name pRule Rule
@@ -44,27 +50,31 @@ import LexTreeSitter
 %tokentype {Token}
 %token
   '$'        { PT _ (TS _ 1)     }
-  '('        { PT _ (TS _ 2)     }
-  ')'        { PT _ (TS _ 3)     }
-  ','        { PT _ (TS _ 4)     }
-  '.'        { PT _ (TS _ 5)     }
-  ':'        { PT _ (TS _ 6)     }
-  ';'        { PT _ (TS _ 7)     }
-  '='        { PT _ (TS _ 8)     }
-  '=>'       { PT _ (TS _ 9)     }
-  'choice'   { PT _ (TS _ 10)    }
-  'const'    { PT _ (TS _ 11)    }
-  'exports'  { PT _ (TS _ 12)    }
-  'grammar'  { PT _ (TS _ 13)    }
-  'module'   { PT _ (TS _ 14)    }
-  'name'     { PT _ (TS _ 15)    }
-  'optional' { PT _ (TS _ 16)    }
-  'repeat'   { PT _ (TS _ 17)    }
-  'repeat1'  { PT _ (TS _ 18)    }
-  'rules'    { PT _ (TS _ 19)    }
-  'seq'      { PT _ (TS _ 20)    }
-  '{'        { PT _ (TS _ 21)    }
-  '}'        { PT _ (TS _ 22)    }
+  '\''       { PT _ (TS _ 2)     }
+  '('        { PT _ (TS _ 3)     }
+  ')'        { PT _ (TS _ 4)     }
+  ','        { PT _ (TS _ 5)     }
+  '.'        { PT _ (TS _ 6)     }
+  ':'        { PT _ (TS _ 7)     }
+  ';'        { PT _ (TS _ 8)     }
+  '='        { PT _ (TS _ 9)     }
+  '=>'       { PT _ (TS _ 10)    }
+  '['        { PT _ (TS _ 11)    }
+  ']'        { PT _ (TS _ 12)    }
+  'choice'   { PT _ (TS _ 13)    }
+  'const'    { PT _ (TS _ 14)    }
+  'exports'  { PT _ (TS _ 15)    }
+  'grammar'  { PT _ (TS _ 16)    }
+  'inline'   { PT _ (TS _ 17)    }
+  'module'   { PT _ (TS _ 18)    }
+  'name'     { PT _ (TS _ 19)    }
+  'optional' { PT _ (TS _ 20)    }
+  'repeat'   { PT _ (TS _ 21)    }
+  'repeat1'  { PT _ (TS _ 22)    }
+  'rules'    { PT _ (TS _ 23)    }
+  'seq'      { PT _ (TS _ 24)    }
+  '{'        { PT _ (TS _ 25)    }
+  '}'        { PT _ (TS _ 26)    }
   L_quoted   { PT _ (TL $$)      }
   L_Id       { PT _ (T_Id $$)    }
   L_RegEx    { PT _ (T_RegEx $$) }
@@ -96,7 +106,18 @@ ListConstDecl
 
 GrammarBody :: { AbsTreeSitter.GrammarBody }
 GrammarBody
-  : Name ',' Rules ',' { AbsTreeSitter.GrammarBody $1 $3 }
+  : Name ',' Rules ',' Inlines ',' { AbsTreeSitter.GrammarBody $1 $3 $5 }
+
+Inlines :: { AbsTreeSitter.Inlines }
+Inlines
+  : 'inline' ':' '$' '=>' '[' ListInline ']' { AbsTreeSitter.Inlines $6 }
+
+Inline :: { AbsTreeSitter.Inline }
+Inline : '\'' Id '\'' { AbsTreeSitter.InlineSymbol $2 }
+
+ListInline :: { [AbsTreeSitter.Inline] }
+ListInline
+  : {- empty -} { [] } | Inline ',' ListInline { (:) $1 $3 }
 
 Name :: { AbsTreeSitter.Name }
 Name : 'name' ':' String { AbsTreeSitter.Name $3 }

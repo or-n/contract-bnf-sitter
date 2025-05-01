@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \. | \= | \( | \{ | \} | \) | \; | \, | \: | \$ | \= \>
+@rsyms = \. | \= | \( | \{ | \} | \) | \; | \, | \: | \$ | \= \> | \[ | \] | \'
 
 :-
 
@@ -166,16 +166,19 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "exports" 12
-    (b ":" 6
-       (b ")" 3 (b "(" 2 (b "$" 1 N N) N) (b "." 5 (b "," 4 N N) N))
-       (b "=>" 9
-          (b "=" 8 (b ";" 7 N N) N) (b "const" 11 (b "choice" 10 N N) N)))
-    (b "repeat1" 18
-       (b "name" 15
-          (b "module" 14 (b "grammar" 13 N N) N)
-          (b "repeat" 17 (b "optional" 16 N N) N))
-       (b "{" 21 (b "seq" 20 (b "rules" 19 N N) N) (b "}" 22 N N)))
+  b "const" 14
+    (b ":" 7
+       (b ")" 4
+          (b "'" 2 (b "$" 1 N N) (b "(" 3 N N)) (b "." 6 (b "," 5 N N) N))
+       (b "[" 11
+          (b "=" 9 (b ";" 8 N N) (b "=>" 10 N N))
+          (b "choice" 13 (b "]" 12 N N) N)))
+    (b "repeat" 21
+       (b "module" 18
+          (b "grammar" 16 (b "exports" 15 N N) (b "inline" 17 N N))
+          (b "optional" 20 (b "name" 19 N N) N))
+       (b "seq" 24
+          (b "rules" 23 (b "repeat1" 22 N N) N) (b "}" 26 (b "{" 25 N N) N)))
   where
   b s n = B bs (TS bs n)
     where
