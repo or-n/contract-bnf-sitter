@@ -78,6 +78,7 @@ outputTreeSitter top_a top_b n what = unlines
   ]
 
 predefined_char_a = "../samples/predefined/char_a"
+sep_a = "../samples/sep/a"
 
 main = hspec $ do
   describe "arbitrary" $ do
@@ -104,6 +105,15 @@ main = hspec $ do
         let abstract = "Char " <> wrap [apostrophe] (fix x)
         let linear = "Char " <> wrap [apostrophe] x
         output `shouldBe` outputLBNF "input" abstract linear
+  beforeAll (genLBNF "samples/LBNF/sep.cf")
+    $ afterAll_ rm
+    $ describe "LBNF parse sep" $ do
+      it "sep_a" $ do
+        output <- runParseLBNF "TestSep" sep_a
+        putStr output
+        let abstract = "A [MkA (Ident \"a\"),MkA (Ident \"b\"),MkA (Ident \"c\")]"
+        let linear = "A a, b, c"
+        output `shouldBe` outputLBNF sep_a abstract linear
   beforeAll (genTreeSitter "samples/TreeSitter/predefined.js")
     $ afterAll_ rm
     $ describe "TreeSitter parse predefined" $ do

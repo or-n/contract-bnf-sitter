@@ -1,8 +1,8 @@
 A. Top ::= "A" [A] ;
 B. Top ::= "B" [B] ;
 
-A. A ::= Ident ;
+MkA. A ::= Ident ;
 separator A "," ;
 
-B. B ::= Ident ;
+MkB. B ::= Ident ;
 terminator B "," ;
