@@ -1,9 +1,9 @@
 { pkgs ? import <nixpkgs> {} }:
 
 pkgs.mkShell {
-  buildInputs = [
-    pkgs.cabal-install
-    pkgs.alex
-    pkgs.happy
+  buildInputs = with pkgs; [
+    cabal-install
+    alex
+    happy
   ];
 }

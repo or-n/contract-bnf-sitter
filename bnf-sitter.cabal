@@ -94,5 +94,6 @@ test-suite spec
     directory,
     text,
     bytestring,
+    deepseq,
   default-language:    Haskell2010
   default-extensions: LambdaCase
