@@ -30,13 +30,19 @@ translate grammar = do
   catRules' <- mapM pushChoiceRule ruleGroups
   let top = TreeSitter.Symbol (TreeSitter.Id "top")
   let sourceFile = TreeSitter.Rule (TreeSitter.Id "source_file") top
+  let optionalSeparators = map fst $ filter snd separators
+  let onExpr expr = substPredefined
+        $ foldr substOptionalSeparator expr optionalSeparators
   let (constDecls, rules) =
         consts
-        . map (mapRuleExpression substPredefined)
+        . map (mapRuleExpression onExpr)
         . join
-        $ [[sourceFile], separators, terminators] <> catRules'
-  let inline = TreeSitter.InlineSymbol (TreeSitter.Id "_list_a")
-  pure $ mkGrammar "grammar" constDecls rules [inline]
+        $ [[sourceFile], map fst separators, terminators] <> catRules'
+  pure $ mkGrammar "grammar" constDecls rules []
+
+substOptionalSeparator sepRule =
+  let id' = ruleId sepRule
+  in substSymbol id' (TreeSitter.Optional (TreeSitter.Symbol id'))
 
 translateSeparator = \case
   LBNF.Separator minSize cat text -> do
@@ -50,10 +56,8 @@ translateSeparator = \case
             , TreeSitter.Symbol catId
             ] 
         ]
-      expr = case minSize of
-        LBNF.MNonempty -> basicExpr
-        LBNF.MEmpty -> TreeSitter.Optional basicExpr
-    pure $ TreeSitter.Rule id' expr
+      mustBeOptional = minSize == LBNF.MEmpty
+    pure (TreeSitter.Rule id' basicExpr, mustBeOptional)
   _ -> undefined
 
 translateTerminator = \case

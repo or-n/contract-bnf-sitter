@@ -167,8 +167,7 @@ instance Print AbsTreeSitter.Inlines where
 
 instance Print AbsTreeSitter.Inline where
   prt i = \case
-    AbsTreeSitter.InlineSymbol (AbsTreeSitter.Id id_) ->
-      doc (showString $ "'" ++ id_ ++ "'")
+    AbsTreeSitter.InlineSymbol id_ -> prPrec i 0 (concatD [doc (showString "$"), doc (showString "."), prt 0 id_])
 
 instance Print [AbsTreeSitter.Inline] where
   prt _ [] = concatD []

@@ -50,31 +50,30 @@ import LexTreeSitter
 %tokentype {Token}
 %token
   '$'        { PT _ (TS _ 1)     }
-  '\''       { PT _ (TS _ 2)     }
-  '('        { PT _ (TS _ 3)     }
-  ')'        { PT _ (TS _ 4)     }
-  ','        { PT _ (TS _ 5)     }
-  '.'        { PT _ (TS _ 6)     }
-  ':'        { PT _ (TS _ 7)     }
-  ';'        { PT _ (TS _ 8)     }
-  '='        { PT _ (TS _ 9)     }
-  '=>'       { PT _ (TS _ 10)    }
-  '['        { PT _ (TS _ 11)    }
-  ']'        { PT _ (TS _ 12)    }
-  'choice'   { PT _ (TS _ 13)    }
-  'const'    { PT _ (TS _ 14)    }
-  'exports'  { PT _ (TS _ 15)    }
-  'grammar'  { PT _ (TS _ 16)    }
-  'inline'   { PT _ (TS _ 17)    }
-  'module'   { PT _ (TS _ 18)    }
-  'name'     { PT _ (TS _ 19)    }
-  'optional' { PT _ (TS _ 20)    }
-  'repeat'   { PT _ (TS _ 21)    }
-  'repeat1'  { PT _ (TS _ 22)    }
-  'rules'    { PT _ (TS _ 23)    }
-  'seq'      { PT _ (TS _ 24)    }
-  '{'        { PT _ (TS _ 25)    }
-  '}'        { PT _ (TS _ 26)    }
+  '('        { PT _ (TS _ 2)     }
+  ')'        { PT _ (TS _ 3)     }
+  ','        { PT _ (TS _ 4)     }
+  '.'        { PT _ (TS _ 5)     }
+  ':'        { PT _ (TS _ 6)     }
+  ';'        { PT _ (TS _ 7)     }
+  '='        { PT _ (TS _ 8)     }
+  '=>'       { PT _ (TS _ 9)     }
+  '['        { PT _ (TS _ 10)    }
+  ']'        { PT _ (TS _ 11)    }
+  'choice'   { PT _ (TS _ 12)    }
+  'const'    { PT _ (TS _ 13)    }
+  'exports'  { PT _ (TS _ 14)    }
+  'grammar'  { PT _ (TS _ 15)    }
+  'inline'   { PT _ (TS _ 16)    }
+  'module'   { PT _ (TS _ 17)    }
+  'name'     { PT _ (TS _ 18)    }
+  'optional' { PT _ (TS _ 19)    }
+  'repeat'   { PT _ (TS _ 20)    }
+  'repeat1'  { PT _ (TS _ 21)    }
+  'rules'    { PT _ (TS _ 22)    }
+  'seq'      { PT _ (TS _ 23)    }
+  '{'        { PT _ (TS _ 24)    }
+  '}'        { PT _ (TS _ 25)    }
   L_quoted   { PT _ (TL $$)      }
   L_Id       { PT _ (T_Id $$)    }
   L_RegEx    { PT _ (T_RegEx $$) }
@@ -113,7 +112,7 @@ Inlines
   : 'inline' ':' '$' '=>' '[' ListInline ']' { AbsTreeSitter.Inlines $6 }
 
 Inline :: { AbsTreeSitter.Inline }
-Inline : '\'' Id '\'' { AbsTreeSitter.InlineSymbol $2 }
+Inline : '$' '.' Id { AbsTreeSitter.InlineSymbol $3 }
 
 ListInline :: { [AbsTreeSitter.Inline] }
 ListInline

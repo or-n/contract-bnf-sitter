@@ -12,7 +12,7 @@ terminator ConstDecl ";" ;
 GrammarBody. GrammarBody ::= Name "," Rules "," Inlines ",";
 
 Inlines. Inlines ::= "inline" ":" "$" "=>" "[" [Inline] "]" ;
-InlineSymbol. Inline ::= "'" Id "'";
+InlineSymbol. Inline ::= "$" "." Id;
 terminator Inline "," ;
 
 Name. Name ::= "name" ":" String ;

@@ -38,7 +38,7 @@ The symbols used in TreeSitter are the following:
   | . | = | ( | {
   | } | ) | ; | ,
   | : | $ | => | [
-  | ] | ' |  |
+  | ] |  |  |
 
 ===Comments===
 Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
@@ -56,7 +56,7 @@ All other symbols are terminals.
   |  |  **|**  | //ConstDecl// ``;`` //[ConstDecl]//
   | //GrammarBody// | -> | //Name// ``,`` //Rules// ``,`` //Inlines// ``,``
   | //Inlines// | -> | ``inline`` ``:`` ``$`` ``=>`` ``[`` //[Inline]// ``]``
-  | //Inline// | -> | ``'`` //Id// ``'``
+  | //Inline// | -> | ``$`` ``.`` //Id//
   | //[Inline]// | -> | **eps**
   |  |  **|**  | //Inline// ``,`` //[Inline]//
   | //Name// | -> | ``name`` ``:`` //String//

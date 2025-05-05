@@ -1,5 +1,5 @@
 
-Mk. Grammar ::= Digit ;
+Mk. Top ::= Digit ;
 
 Zero. Digit ::= "0" ;
 One. Digit ::= "1" ;

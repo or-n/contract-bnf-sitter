@@ -73,12 +73,13 @@ fix "\"" = "\""
 fix x = unquote (show x)
 
 outputTreeSitter top_a top_b n what = unlines
-  [ "(top [0, 0] - [" <> show top_a <> ", " <> show top_b <> "]"
-  , "  (" <> what <> " [0, 0] - [0, " <> show n <> "]))"
+  [ "(source_file [0, 0] - [" <> show top_a <> ", " <> show top_b <> "]"
+  , "  (top [0, 0] - [0, " <> show n <> "]"
+  , "    (" <> what <> " [0, 0] - [0, " <> show n <> "])))"
   ]
 
 predefined_char_a = "../samples/predefined/char_a"
-sep_a = "../samples/sep/a"
+sep_abc = "../samples/sep/abc"
 
 main = hspec $ do
   describe "arbitrary" $ do
@@ -128,16 +129,23 @@ main = hspec $ do
     beforeAll (genLBNF "samples/LBNF/sep.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
-        it "sep_a" $ do
-          output <- runParseLBNF "TestSep" sep_a
+        it "sep_abc" $ do
+          output <- runParseLBNF "TestSep" sep_abc
           putStr output
           let abstract = "A [MkA (Ident \"a\"),MkA (Ident \"b\"),MkA (Ident \"c\")]"
           let linear = "A a, b, c"
-          output `shouldBe` outputLBNF sep_a abstract linear
+          output `shouldBe` outputLBNF sep_abc abstract linear
     beforeAll (genTreeSitter "samples/TreeSitter/sep.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
-        it "sep_a" $ do
-          output <- runParseTreeSitter predefined_char_a
-          output `shouldBe` outputTreeSitter 1 0 8 "char"
+        it "sep_abc" $ do
+          output <- runParseTreeSitter sep_abc
+          output `shouldBe` unlines
+            [ "(source_file [0, 0] - [1, 0]"
+            , "  (top [0, 0] - [0, 9]"
+            , "    (a [0, 0] - [0, 9]"
+            , "      (mkA [0, 2] - [0, 3])"
+            , "      (mkA [0, 5] - [0, 6])"
+            , "      (mkA [0, 8] - [0, 9]))))"
+            ]
         
