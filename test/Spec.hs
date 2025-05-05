@@ -81,6 +81,7 @@ outputTreeSitter top_a top_b n what = unlines
 predefined_char_a = "../samples/predefined/char_a"
 sep_abc = "../samples/sep/abc"
 sep_empty = "../samples/sep/empty"
+sep_terminator_abc = "../samples/sep/terminator_abc"
 
 main = hspec $ do
   describe "arbitrary" $ do
@@ -142,6 +143,12 @@ main = hspec $ do
           let abstract = "A []"
           let linear = "A"
           output `shouldBe` outputLBNF sep_empty abstract linear
+        it "terminator_abc" $ do
+          output <- runParseLBNF "TestSep" sep_terminator_abc
+          putStr output
+          let abstract = "B [MkB (Ident \"a\"),MkB (Ident \"b\"),MkB (Ident \"c\")]"
+          let linear = "B a, b, c,"
+          output `shouldBe` outputLBNF sep_terminator_abc abstract linear
     beforeAll (genTreeSitter "samples/TreeSitter/sep.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
@@ -161,5 +168,15 @@ main = hspec $ do
             [ "(source_file [0, 0] - [1, 0]"
             , "  (top [0, 0] - [0, 1]"
             , "    (a [0, 0] - [0, 1])))"
+            ]
+        it "terminator_abc" $ do
+          output <- runParseTreeSitter sep_terminator_abc
+          output `shouldBe` unlines
+            [ "(source_file [0, 0] - [1, 0]"
+            , "  (top [0, 0] - [0, 10]"
+            , "    (b [0, 0] - [0, 10]"
+            , "      (mkB [0, 2] - [0, 3])"
+            , "      (mkB [0, 5] - [0, 6])"
+            , "      (mkB [0, 8] - [0, 9]))))"
             ]
         
