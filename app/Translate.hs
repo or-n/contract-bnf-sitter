@@ -142,6 +142,25 @@ toChoice = \case
 
 keywordsLBNF =
   [ "Ident"
+  , "char"
+  , "coertions"
+  , "comment"
+  , "digit"
+  , "entrypoints"
+  , "eps"
+  , "internal"
+  , "layout"
+  , "letter"
+  , "lower"
+  , "nonempty"
+  , "position"
+  , "rules"
+  , "separator"
+  , "stop"
+  , "terminator"
+  , "token"
+  , "toplevel"
+  , "upper"
   ]
 
 keywordsTreeSitter =
