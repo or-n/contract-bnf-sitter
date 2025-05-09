@@ -88,6 +88,9 @@ main = hspec $ do
     let path x = "../samples/predefined/" <> x
     let char_a = "char_a"
     let char_newline = "char_newline"
+    let double = "double"
+    let double_e = "double_e"
+    let double_trailing_0s = "double_trailing_0s"
     beforeAll (genLBNF "samples/LBNF/predefined.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
@@ -97,6 +100,15 @@ main = hspec $ do
         it char_newline $ do
           output <- runParseLBNF "TestPredefined" (path char_newline)
           output `shouldBe` outputLBNF (path char_newline) "Char '\\n'" "Char '\\n'"
+        it double $ do
+          output <- runParseLBNF "TestPredefined" (path double)
+          output `shouldBe` outputLBNF (path double) "Double 9.99" "Double 9.99"
+        it double_e $ do
+          output <- runParseLBNF "TestPredefined" (path double_e)
+          output `shouldBe` outputLBNF (path double_e) "Double 3.14e-5" "Double 3.14e-5"
+        it double_trailing_0s $ do
+          output <- runParseLBNF "TestPredefined" (path double_trailing_0s)
+          output `shouldBe` outputLBNF (path double_trailing_0s) "Double 3.0" "Double 3.0"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           writeFile "input" input
@@ -119,6 +131,15 @@ main = hspec $ do
         it char_newline $ do
           output <- runParseTreeSitter (path char_newline)
           output `shouldBe` outputTreeSitter 1 0 9 "char"
+        it double $ do
+          output <- runParseTreeSitter (path double)
+          output `shouldBe` outputTreeSitter 1 0 11 "double"
+        it double_e $ do
+          output <- runParseTreeSitter (path double_e)
+          output `shouldBe` outputTreeSitter 1 0 14 "double"
+        it double_trailing_0s $ do
+          output <- runParseTreeSitter (path double_trailing_0s)
+          output `shouldBe` outputTreeSitter 1 0 11 "double"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
