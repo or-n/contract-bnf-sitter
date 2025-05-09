@@ -65,23 +65,12 @@ outputLBNF path tree linear = unlines
   , linear
   ]
 
-unquote = tail . init
-
-fix "\\\\" = "\\\\"
-fix "\\\'" = "\\\'"
-fix "\"" = "\""
-fix x = unquote (show x)
 
 outputTreeSitter top_a top_b n what = unlines
   [ "(source_file [0, 0] - [" <> show top_a <> ", " <> show top_b <> "]"
   , "  (top [0, 0] - [0, " <> show n <> "]"
   , "    (" <> what <> " [0, 0] - [0, " <> show n <> "])))"
   ]
-
-predefined_char_a = "../samples/predefined/char_a"
-sep_abc = "../samples/sep/abc"
-sep_empty = "../samples/sep/empty"
-sep_terminator_abc = "../samples/sep/terminator_abc"
 
 main = hspec $ do
   describe "arbitrary" $ do
@@ -96,25 +85,40 @@ main = hspec $ do
     it "valid Double" $ property $ \x ->
       checkDouble (show (x :: PredefinedDouble))
   describe "predefined" $ do
+    let path x = "../samples/predefined/" <> x
+    let char_a = "char_a"
+    let char_newline = "char_newline"
     beforeAll (genLBNF "samples/LBNF/predefined.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
-        it "char_a" $ do
-          output <- runParseLBNF "TestPredefined" predefined_char_a
-          output `shouldBe` outputLBNF predefined_char_a "Char 'a'" "Char 'a'"
+        it char_a $ do
+          output <- runParseLBNF "TestPredefined" (path char_a)
+          output `shouldBe` outputLBNF (path char_a) "Char 'a'" "Char 'a'"
+        it char_newline $ do
+          output <- runParseLBNF "TestPredefined" (path char_newline)
+          output `shouldBe` outputLBNF (path char_newline) "Char '\\n'" "Char '\\n'"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           writeFile "input" input
           output <- runParseLBNF "TestPredefined" "input"
-          let abstract = "Char " <> wrap [apostrophe] (fix x)
+          let unquote = tail . init
+          let fixChar = \case
+                "\\\\" -> "\\\\"
+                "\\\'" -> "\\\'"
+                "\"" -> "\""
+                x -> unquote (show x)
+          let abstract = "Char " <> wrap [apostrophe] (fixChar x)
           let linear = "Char " <> wrap [apostrophe] x
           output `shouldBe` outputLBNF "input" abstract linear
     beforeAll (genTreeSitter "samples/TreeSitter/predefined.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
-        it "char_a" $ do
-          output <- runParseTreeSitter predefined_char_a
+        it char_a $ do
+          output <- runParseTreeSitter (path char_a)
           output `shouldBe` outputTreeSitter 1 0 8 "char"
+        it char_newline $ do
+          output <- runParseTreeSitter (path char_newline)
+          output `shouldBe` outputTreeSitter 1 0 9 "char"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
@@ -128,32 +132,36 @@ main = hspec $ do
           output <- runParseTreeSitter "input"
           output `shouldBe` outputTreeSitter 0 n n "string"
   describe "sep" $ do
+    let path x = "../samples/sep/" <> x
+    let abc = "abc"
+    let empty = "empty"
+    let terminator_abc = "terminator_abc"
     beforeAll (genLBNF "samples/LBNF/sep.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
-        it "abc" $ do
-          output <- runParseLBNF "TestSep" sep_abc
+        it abc $ do
+          output <- runParseLBNF "TestSep" (path abc)
           putStr output
           let abstract = "A [MkA (Ident \"a\"),MkA (Ident \"b\"),MkA (Ident \"c\")]"
           let linear = "A a, b, c"
-          output `shouldBe` outputLBNF sep_abc abstract linear
-        it "empty" $ do
-          output <- runParseLBNF "TestSep" sep_empty
+          output `shouldBe` outputLBNF (path abc) abstract linear
+        it empty $ do
+          output <- runParseLBNF "TestSep" (path empty)
           putStr output
           let abstract = "A []"
           let linear = "A"
-          output `shouldBe` outputLBNF sep_empty abstract linear
-        it "terminator_abc" $ do
-          output <- runParseLBNF "TestSep" sep_terminator_abc
+          output `shouldBe` outputLBNF (path empty) abstract linear
+        it terminator_abc $ do
+          output <- runParseLBNF "TestSep" (path terminator_abc)
           putStr output
           let abstract = "B [MkB (Ident \"a\"),MkB (Ident \"b\"),MkB (Ident \"c\")]"
           let linear = "B a, b, c,"
-          output `shouldBe` outputLBNF sep_terminator_abc abstract linear
+          output `shouldBe` outputLBNF (path terminator_abc) abstract linear
     beforeAll (genTreeSitter "samples/TreeSitter/sep.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
-        it "abc" $ do
-          output <- runParseTreeSitter sep_abc
+        it abc $ do
+          output <- runParseTreeSitter (path abc)
           output `shouldBe` unlines
             [ "(source_file [0, 0] - [1, 0]"
             , "  (top [0, 0] - [0, 9]"
@@ -162,15 +170,15 @@ main = hspec $ do
             , "      (mkA [0, 5] - [0, 6])"
             , "      (mkA [0, 8] - [0, 9]))))"
             ]
-        it "empty" $ do
-          output <- runParseTreeSitter sep_empty
+        it empty $ do
+          output <- runParseTreeSitter (path empty)
           output `shouldBe` unlines
             [ "(source_file [0, 0] - [1, 0]"
             , "  (top [0, 0] - [0, 1]"
             , "    (a [0, 0] - [0, 1])))"
             ]
-        it "terminator_abc" $ do
-          output <- runParseTreeSitter sep_terminator_abc
+        it terminator_abc $ do
+          output <- runParseTreeSitter (path terminator_abc)
           output `shouldBe` unlines
             [ "(source_file [0, 0] - [1, 0]"
             , "  (top [0, 0] - [0, 10]"
