@@ -85,12 +85,16 @@ main = hspec $ do
     it "valid Double" $ property $ \x ->
       checkDouble (show (x :: PredefinedDouble))
   describe "predefined" $ do
-    let path x = "../samples/predefined/" <> x
-    let char_a = "char_a"
-    let char_newline = "char_newline"
-    let double = "double"
-    let double_e = "double_e"
-    let double_trailing_0s = "double_trailing_0s"
+    let
+      path x = "../samples/predefined/" <> x
+      char_a = "char_a"
+      char_newline = "char_newline"
+      double = "double"
+      double_e = "double_e"
+      double_trailing_0s = "double_trailing_0s"
+      ident = "ident"
+      ident_ = "ident_"
+      ident_apo = "ident_apo"
     beforeAll (genLBNF "samples/LBNF/predefined.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
@@ -109,6 +113,15 @@ main = hspec $ do
         it double_trailing_0s $ do
           output <- runParseLBNF "TestPredefined" (path double_trailing_0s)
           output `shouldBe` outputLBNF (path double_trailing_0s) "Double 3.0" "Double 3.0"
+        it ident $ do
+          output <- runParseLBNF "TestPredefined" (path ident)
+          output `shouldBe` outputLBNF (path ident) "IdentT (Ident \"aB\")" "Ident aB"
+        it ident_ $ do
+          output <- runParseLBNF "TestPredefined" (path ident_)
+          output `shouldBe` outputLBNF (path ident_) "IdentT (Ident \"x_\")" "Ident x_"
+        it ident_apo $ do
+          output <- runParseLBNF "TestPredefined" (path ident_apo)
+          output `shouldBe` outputLBNF (path ident_apo) "IdentT (Ident \"y'\")" "Ident y'"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           writeFile "input" input
@@ -140,6 +153,15 @@ main = hspec $ do
         it double_trailing_0s $ do
           output <- runParseTreeSitter (path double_trailing_0s)
           output `shouldBe` outputTreeSitter 1 0 11 "double"
+        it ident $ do
+          output <- runParseTreeSitter (path ident)
+          output `shouldBe` outputTreeSitter 1 0 8 "identT"
+        it ident_ $ do
+          output <- runParseTreeSitter (path ident_)
+          output `shouldBe` outputTreeSitter 1 0 8 "identT"
+        it ident_apo $ do
+          output <- runParseTreeSitter (path ident_apo)
+          output `shouldBe` outputTreeSitter 1 0 8 "identT"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
