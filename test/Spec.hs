@@ -97,39 +97,29 @@ main = hspec $ do
       ident_apo = "ident_apo"
       integer_0 = "integer_0"
       integer_leading_0 = "integer_leading_0"
+      string = "string"
+      string_empty = "string_empty"
+      fileLBNF name abstract linear = it name $ do
+          output <- runParseLBNF "TestPredefined" (path name)
+          output `shouldBe` outputLBNF (path name) abstract linear
+      fileTreeSitter name end result = it name $ do
+          output <- runParseTreeSitter (path name)
+          output `shouldBe` outputTreeSitter 1 0 end result
     beforeAll (genLBNF "samples/LBNF/predefined.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
-        it char_a $ do
-          output <- runParseLBNF "TestPredefined" (path char_a)
-          output `shouldBe` outputLBNF (path char_a) "Char 'a'" "Char 'a'"
-        it char_newline $ do
-          output <- runParseLBNF "TestPredefined" (path char_newline)
-          output `shouldBe` outputLBNF (path char_newline) "Char '\\n'" "Char '\\n'"
-        it double $ do
-          output <- runParseLBNF "TestPredefined" (path double)
-          output `shouldBe` outputLBNF (path double) "Double 9.99" "Double 9.99"
-        it double_e $ do
-          output <- runParseLBNF "TestPredefined" (path double_e)
-          output `shouldBe` outputLBNF (path double_e) "Double 3.14e-5" "Double 3.14e-5"
-        it double_trailing_0s $ do
-          output <- runParseLBNF "TestPredefined" (path double_trailing_0s)
-          output `shouldBe` outputLBNF (path double_trailing_0s) "Double 3.0" "Double 3.0"
-        it ident $ do
-          output <- runParseLBNF "TestPredefined" (path ident)
-          output `shouldBe` outputLBNF (path ident) "IdentT (Ident \"aB\")" "Ident aB"
-        it ident_ $ do
-          output <- runParseLBNF "TestPredefined" (path ident_)
-          output `shouldBe` outputLBNF (path ident_) "IdentT (Ident \"x_\")" "Ident x_"
-        it ident_apo $ do
-          output <- runParseLBNF "TestPredefined" (path ident_apo)
-          output `shouldBe` outputLBNF (path ident_apo) "IdentT (Ident \"y'\")" "Ident y'"
-        it integer_0 $ do
-          output <- runParseLBNF "TestPredefined" (path integer_0)
-          output `shouldBe` outputLBNF (path integer_0) "Integer 0" "Integer 0"
-        it integer_leading_0 $ do
-          output <- runParseLBNF "TestPredefined" (path integer_leading_0)
-          output `shouldBe` outputLBNF (path integer_leading_0) "Integer 928735" "Integer 928735"
+        fileLBNF char_a "Char 'a'" "Char 'a'"
+        fileLBNF char_newline "Char '\\n'" "Char '\\n'"
+        fileLBNF double "Double 9.99" "Double 9.99"
+        fileLBNF double_e "Double 3.14e-5" "Double 3.14e-5"
+        fileLBNF double_trailing_0s "Double 3.0" "Double 3.0"
+        fileLBNF ident "IdentT (Ident \"aB\")" "Ident aB"
+        fileLBNF ident_ "IdentT (Ident \"x_\")" "Ident x_"
+        fileLBNF ident_apo "IdentT (Ident \"y'\")" "Ident y'"
+        fileLBNF integer_0 "Integer 0" "Integer 0"
+        fileLBNF integer_leading_0 "Integer 928735" "Integer 928735"
+        fileLBNF string "String \"a b\\nx\"" "String \"a b\\nx\""
+        fileLBNF string_empty "String \"\"" "String \"\""
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           writeFile "input" input
@@ -146,36 +136,18 @@ main = hspec $ do
     beforeAll (genTreeSitter "samples/TreeSitter/predefined.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
-        it char_a $ do
-          output <- runParseTreeSitter (path char_a)
-          output `shouldBe` outputTreeSitter 1 0 8 "char"
-        it char_newline $ do
-          output <- runParseTreeSitter (path char_newline)
-          output `shouldBe` outputTreeSitter 1 0 9 "char"
-        it double $ do
-          output <- runParseTreeSitter (path double)
-          output `shouldBe` outputTreeSitter 1 0 11 "double"
-        it double_e $ do
-          output <- runParseTreeSitter (path double_e)
-          output `shouldBe` outputTreeSitter 1 0 14 "double"
-        it double_trailing_0s $ do
-          output <- runParseTreeSitter (path double_trailing_0s)
-          output `shouldBe` outputTreeSitter 1 0 11 "double"
-        it ident $ do
-          output <- runParseTreeSitter (path ident)
-          output `shouldBe` outputTreeSitter 1 0 8 "identT"
-        it ident_ $ do
-          output <- runParseTreeSitter (path ident_)
-          output `shouldBe` outputTreeSitter 1 0 8 "identT"
-        it ident_apo $ do
-          output <- runParseTreeSitter (path ident_apo)
-          output `shouldBe` outputTreeSitter 1 0 8 "identT"
-        it integer_0 $ do
-          output <- runParseTreeSitter (path integer_0)
-          output `shouldBe` outputTreeSitter 1 0 9 "integer"
-        it integer_leading_0 $ do
-          output <- runParseTreeSitter (path integer_leading_0)
-          output `shouldBe` outputTreeSitter 1 0 15 "integer"
+        fileTreeSitter char_a 8 "char"
+        fileTreeSitter char_newline 9 "char"
+        fileTreeSitter double 11 "double"
+        fileTreeSitter double_e 14 "double"
+        fileTreeSitter double_trailing_0s 11 "double"
+        fileTreeSitter ident 8 "identT"
+        fileTreeSitter ident_ 8 "identT"
+        fileTreeSitter ident_apo 8 "identT"
+        fileTreeSitter integer_0 9 "integer"
+        fileTreeSitter integer_leading_0 15 "integer"
+        fileTreeSitter string 15 "string"
+        fileTreeSitter string_empty 9 "string"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
