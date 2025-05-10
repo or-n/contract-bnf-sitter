@@ -27,8 +27,8 @@ genTreeSitter path = do
   setCurrentDirectory tmp
   runGenerateTreeSitter
 
-alex = "/nix/store/9mxr9863x278zpigz5x3y1kl542sibk7-alex-3.4.0.1/bin/alex"
-happy = "/nix/store/ndprcmy790p3mq2z3zhzbj90c8pgl0x5-happy-1.20.1.1/bin/happy"
+alex = "/nix/store/bbm48ma0dh22vbawwhj1g9nqkxbbrbc1-alex-3.4.0.1/bin/alex"
+happy = "/nix/store/n4899xhj40gddjam6g5bfmy0dl4jbm9a-happy-1.20.1.1/bin/happy"
 
 patchMakefile = do
   content <- readFile "Makefile"
@@ -95,6 +95,8 @@ main = hspec $ do
       ident = "ident"
       ident_ = "ident_"
       ident_apo = "ident_apo"
+      integer_0 = "integer_0"
+      integer_leading_0 = "integer_leading_0"
     beforeAll (genLBNF "samples/LBNF/predefined.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
@@ -122,6 +124,12 @@ main = hspec $ do
         it ident_apo $ do
           output <- runParseLBNF "TestPredefined" (path ident_apo)
           output `shouldBe` outputLBNF (path ident_apo) "IdentT (Ident \"y'\")" "Ident y'"
+        it integer_0 $ do
+          output <- runParseLBNF "TestPredefined" (path integer_0)
+          output `shouldBe` outputLBNF (path integer_0) "Integer 0" "Integer 0"
+        it integer_leading_0 $ do
+          output <- runParseLBNF "TestPredefined" (path integer_leading_0)
+          output `shouldBe` outputLBNF (path integer_leading_0) "Integer 928735" "Integer 928735"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           writeFile "input" input
@@ -162,6 +170,12 @@ main = hspec $ do
         it ident_apo $ do
           output <- runParseTreeSitter (path ident_apo)
           output `shouldBe` outputTreeSitter 1 0 8 "identT"
+        it integer_0 $ do
+          output <- runParseTreeSitter (path integer_0)
+          output `shouldBe` outputTreeSitter 1 0 9 "integer"
+        it integer_leading_0 $ do
+          output <- runParseTreeSitter (path integer_leading_0)
+          output `shouldBe` outputTreeSitter 1 0 15 "integer"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))

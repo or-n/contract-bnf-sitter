@@ -65,7 +65,7 @@ executable bnf-sitter
     Translate
     Util
   build-depends:
-    base ^>=4.18.2.1,
+    base >=4.18.2.1,
     array,
     bnf-sitter
   hs-source-dirs:
@@ -86,7 +86,7 @@ test-suite spec
   other-modules:
     GenLBNF
   build-depends:       
-    base ^>=4.18.2.1,
+    base >=4.18.2.1,
     hspec,
     QuickCheck,
     bnf-sitter,
