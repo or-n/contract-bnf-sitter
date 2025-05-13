@@ -72,6 +72,14 @@ outputTreeSitter top_a top_b n what = unlines
   , "    (" <> what <> " [0, 0] - [0, " <> show n <> "])))"
   ]
 
+fileLBNF binary path name abstract linear = it name $ do
+    output <- runParseLBNF binary (path name)
+    output `shouldBe` outputLBNF (path name) abstract linear
+
+fileTreeSitter path name end result = it name $ do
+    output <- runParseTreeSitter (path name)
+    output `shouldBe` outputTreeSitter 1 0 end result
+
 main = hspec $ do
   describe "arbitrary" $ do
     it "valid Char" $ property $ \(PredefinedChar x) ->
@@ -99,27 +107,46 @@ main = hspec $ do
       integer_leading_0 = "integer_leading_0"
       string = "string"
       string_empty = "string_empty"
-      fileLBNF name abstract linear = it name $ do
-          output <- runParseLBNF "TestPredefined" (path name)
-          output `shouldBe` outputLBNF (path name) abstract linear
-      fileTreeSitter name end result = it name $ do
-          output <- runParseTreeSitter (path name)
-          output `shouldBe` outputTreeSitter 1 0 end result
     beforeAll (genLBNF "samples/LBNF/predefined.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
-        fileLBNF char_a "Char 'a'" "Char 'a'"
-        fileLBNF char_newline "Char '\\n'" "Char '\\n'"
-        fileLBNF double "Double 9.99" "Double 9.99"
-        fileLBNF double_e "Double 3.14e-5" "Double 3.14e-5"
-        fileLBNF double_trailing_0s "Double 3.0" "Double 3.0"
-        fileLBNF ident "IdentT (Ident \"aB\")" "Ident aB"
-        fileLBNF ident_ "IdentT (Ident \"x_\")" "Ident x_"
-        fileLBNF ident_apo "IdentT (Ident \"y'\")" "Ident y'"
-        fileLBNF integer_0 "Integer 0" "Integer 0"
-        fileLBNF integer_leading_0 "Integer 928735" "Integer 928735"
-        fileLBNF string "String \"a b\\nx\"" "String \"a b\\nx\""
-        fileLBNF string_empty "String \"\"" "String \"\""
+        let file = fileLBNF "TestPredefined" path
+        file char_a
+          "Char 'a'"
+          "Char 'a'"
+        file char_newline
+          "Char '\\n'"
+          "Char '\\n'"
+        file double
+          "Double 9.99"
+          "Double 9.99"
+        file double_e
+          "Double 3.14e-5"
+          "Double 3.14e-5"
+        file double_trailing_0s
+          "Double 3.0"
+          "Double 3.0"
+        file ident
+          "IdentT (Ident \"aB\")"
+          "Ident aB"
+        file ident_
+          "IdentT (Ident \"x_\")"
+          "Ident x_"
+        file ident_apo
+          "IdentT (Ident \"y'\")"
+          "Ident y'"
+        file integer_0
+          "Integer 0"
+          "Integer 0"
+        file integer_leading_0
+          "Integer 928735"
+          "Integer 928735"
+        file string
+          "String \"a b\\nx\""
+          "String \"a b\\nx\""
+        file string_empty
+          "String \"\""
+          "String \"\""
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           writeFile "input" input
@@ -136,18 +163,19 @@ main = hspec $ do
     beforeAll (genTreeSitter "samples/TreeSitter/predefined.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
-        fileTreeSitter char_a 8 "char"
-        fileTreeSitter char_newline 9 "char"
-        fileTreeSitter double 11 "double"
-        fileTreeSitter double_e 14 "double"
-        fileTreeSitter double_trailing_0s 11 "double"
-        fileTreeSitter ident 8 "identT"
-        fileTreeSitter ident_ 8 "identT"
-        fileTreeSitter ident_apo 8 "identT"
-        fileTreeSitter integer_0 9 "integer"
-        fileTreeSitter integer_leading_0 15 "integer"
-        fileTreeSitter string 15 "string"
-        fileTreeSitter string_empty 9 "string"
+        let file = fileTreeSitter path
+        file char_a 8 "char"
+        file char_newline 9 "char"
+        file double 11 "double"
+        file double_e 14 "double"
+        file double_trailing_0s 11 "double"
+        file ident 8 "identT"
+        file ident_ 8 "identT"
+        file ident_apo 8 "identT"
+        file integer_0 9 "integer"
+        file integer_leading_0 15 "integer"
+        file string 15 "string"
+        file string_empty 9 "string"
         it "arbitrary char" $ property $ \(PredefinedChar x) -> do
           let input = "Char " <> wrap [apostrophe] x
           let n = 7 + BS.length (TE.encodeUtf8 (T.pack x))
@@ -168,24 +196,16 @@ main = hspec $ do
     beforeAll (genLBNF "samples/LBNF/sep.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
-        it abc $ do
-          output <- runParseLBNF "TestSep" (path abc)
-          putStr output
-          let abstract = "A [MkA (Ident \"a\"),MkA (Ident \"b\"),MkA (Ident \"c\")]"
-          let linear = "A a, b, c"
-          output `shouldBe` outputLBNF (path abc) abstract linear
-        it empty $ do
-          output <- runParseLBNF "TestSep" (path empty)
-          putStr output
-          let abstract = "A []"
-          let linear = "A"
-          output `shouldBe` outputLBNF (path empty) abstract linear
-        it terminator_abc $ do
-          output <- runParseLBNF "TestSep" (path terminator_abc)
-          putStr output
-          let abstract = "B [MkB (Ident \"a\"),MkB (Ident \"b\"),MkB (Ident \"c\")]"
-          let linear = "B a, b, c,"
-          output `shouldBe` outputLBNF (path terminator_abc) abstract linear
+        let file = fileLBNF "TestSep" path
+        file abc
+          "A [MkA (Ident \"a\"),MkA (Ident \"b\"),MkA (Ident \"c\")]"
+          "A a, b, c"
+        file empty
+          "A []"
+          "A"
+        file terminator_abc 
+          "B [MkB (Ident \"a\"),MkB (Ident \"b\"),MkB (Ident \"c\")]"
+          "B a, b, c,"
     beforeAll (genTreeSitter "samples/TreeSitter/sep.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
@@ -216,4 +236,31 @@ main = hspec $ do
             , "      (mkB [0, 5] - [0, 6])"
             , "      (mkB [0, 8] - [0, 9]))))"
             ]
-        
+    describe "precedence" $ do
+      let path x = "../samples/precedence/" <> x
+      let a = "a"
+      beforeAll (genLBNF "samples/LBNF/precedence.cf")
+        $ afterAll_ rm
+        $ describe "LBNF" $ do
+          let file = fileLBNF "TestPrecedence" path
+          file a
+            "Exp (Shift (ToExp (ToExp1 (Number 1))) (Scale (ToExp1 (Number 2)) (Number 3)))"
+            "1 + 2 * 3"
+      beforeAll (genTreeSitter "samples/TreeSitter/precedence.js")
+        $ afterAll_ rm
+        $ describe "TreeSitter" $ do
+          it a $ do
+            output <- runParseTreeSitter (path a)
+            output `shouldBe` unlines
+              [ "(source_file [0, 0] - [1, 0]"
+              , "  (top [0, 0] - [0, 9]"
+              , "    (exp [0, 0] - [0, 9]"
+              , "      (shift [0, 0] - [0, 9]"
+              , "        (toExp [0, 0] - [0, 1]"
+              , "          (toExp1 [0, 0] - [0, 1]"
+              , "            (number [0, 0] - [0, 1])))"
+              , "        (scale [0, 4] - [0, 9]"
+              , "          (toExp1 [0, 4] - [0, 5]"
+              , "            (number [0, 4] - [0, 5]))"
+              , "          (number [0, 8] - [0, 9]))))))"
+              ]

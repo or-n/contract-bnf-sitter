@@ -1,0 +1,10 @@
+Exp . Top ::= Exp ;
+
+Shift . Exp  ::= Exp  "+" Exp1 ;
+ToExp . Exp  ::= Exp1 ;
+
+Scale . Exp1 ::= Exp1 "*" Exp2 ;
+ToExp1 . Exp1 ::= Exp2 ;
+
+Number . Exp2 ::= Integer ;
+ToExp2 . Exp2 ::= "(" Exp ")" ;
