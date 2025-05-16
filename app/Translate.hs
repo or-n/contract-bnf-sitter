@@ -1,7 +1,7 @@
 module Translate where
 
 import Control.Monad (join, when)
-import Data.List (groupBy, group, find)
+import Data.List (groupBy, group, find, partition)
 import Data.Function (on)
 import Data.Maybe (isJust)
 import Util (lowerFirst)
@@ -36,9 +36,11 @@ translate grammar = do
   let (constDecls, rules) =
         consts
         . map (mapRuleExpression onExpr)
+        . filter (\rule -> ruleId rule /= TreeSitter.Id "_")
         . join
         $ [[sourceFile], map fst separators, terminators] <> catRules'
   pure $ mkGrammar "grammar" constDecls rules []
+
 
 substOptionalSeparator sepRule =
   let id' = ruleId sepRule
@@ -109,7 +111,9 @@ consts rules =
 translateRule = \case
   LBNF.Rule label cat items -> do
     items' <- mapM itemToExpression items
-    id' <- labelToText label
+    id' <- if labelIsWild label
+      then pure "_"
+      else labelToText label
     let rule = TreeSitter.Rule (TreeSitter.Id id') (toSeq items')
     pure (cat, rule)
   _ -> undefined
@@ -131,9 +135,11 @@ ruleExpression (TreeSitter.Rule _ expression) = expression
 pushChoiceRule xs = do
   let cat = fst (head xs)
       rules = map snd xs
-      ids = map (TreeSitter.Symbol . ruleId) rules
+      (wildRules, notWildRules) = partition ((== TreeSitter.Id "_") . ruleId) rules
+      symbols = map (TreeSitter.Symbol . ruleId) notWildRules
+      wild = map ruleExpression wildRules
   id' <- catToId cat
-  let rule = TreeSitter.Rule id' $ toChoice ids
+  let rule = TreeSitter.Rule id' $ toChoice $ symbols <> wild
   pure (rule : rules)
 
 toChoice = \case
@@ -197,6 +203,10 @@ catToText = \case
 labelToText = \case
   LBNF.LabNoP labelId -> fmap lowerFirst . guardNotKeyword $ labelIdToText labelId
   _ -> undefined
+
+labelIsWild = \case
+  LBNF.LabNoP LBNF.Wild -> True
+  _ -> False
 
 labelIdToText = \case
   LBNF.Id id' -> ident id'

@@ -65,7 +65,6 @@ outputLBNF path tree linear = unlines
   , linear
   ]
 
-
 outputTreeSitter top_a top_b n what = unlines
   [ "(source_file [0, 0] - [" <> show top_a <> ", " <> show top_b <> "]"
   , "  (top [0, 0] - [0, " <> show n <> "]"
@@ -244,7 +243,7 @@ main = hspec $ do
         $ describe "LBNF" $ do
           let file = fileLBNF "TestPrecedence" path
           file a
-            "Exp (Shift (ToExp (ToExp1 (Number 1))) (Scale (ToExp1 (Number 2)) (Number 3)))"
+            "Exp (Shift (Number 1) (Scale (Number 2) (Number 3)))"
             "1 + 2 * 3"
       beforeAll (genTreeSitter "samples/TreeSitter/precedence.js")
         $ afterAll_ rm
@@ -256,11 +255,8 @@ main = hspec $ do
               , "  (top [0, 0] - [0, 9]"
               , "    (exp [0, 0] - [0, 9]"
               , "      (shift [0, 0] - [0, 9]"
-              , "        (toExp [0, 0] - [0, 1]"
-              , "          (toExp1 [0, 0] - [0, 1]"
-              , "            (number [0, 0] - [0, 1])))"
+              , "        (number [0, 0] - [0, 1])"
               , "        (scale [0, 4] - [0, 9]"
-              , "          (toExp1 [0, 4] - [0, 5]"
-              , "            (number [0, 4] - [0, 5]))"
+              , "          (number [0, 4] - [0, 5])"
               , "          (number [0, 8] - [0, 9]))))))"
               ]
