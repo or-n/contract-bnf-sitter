@@ -188,10 +188,14 @@ main = hspec $ do
           output <- runParseTreeSitter "input"
           output `shouldBe` outputTreeSitter 0 n n "string"
   describe "sep" $ do
-    let path x = "../samples/sep/" <> x
-    let abc = "abc"
-    let empty = "empty"
-    let terminator_abc = "terminator_abc"
+    let
+      path x = "../samples/sep/" <> x
+      abc = "abc"
+      empty = "empty"
+      terminator_abc = "terminator_abc"
+      c_zero = "c_zero"
+      c_one = "c_one"
+      c_two = "c_two"
     beforeAll (genLBNF "samples/LBNF/sep.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
@@ -205,6 +209,15 @@ main = hspec $ do
         file terminator_abc 
           "B [MkB (Ident \"a\"),MkB (Ident \"b\"),MkB (Ident \"c\")]"
           "B a, b, c,"
+        -- file c_zero
+        --   "C []"
+        --   "C"
+        file c_one
+          "C [MkC (Ident \"a\")]"
+          "C a;"
+        file c_two
+          "C [MkC (Ident \"a\"),MkC (Ident \"b\")]"
+          "C a;\nb;"
     beforeAll (genTreeSitter "samples/TreeSitter/sep.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
@@ -234,6 +247,23 @@ main = hspec $ do
             , "      (mkB [0, 2] - [0, 3])"
             , "      (mkB [0, 5] - [0, 6])"
             , "      (mkB [0, 8] - [0, 9]))))"
+            ]
+        it c_one $ do
+          output <- runParseTreeSitter (path c_one)
+          output `shouldBe` unlines
+            [ "(source_file [0, 0] - [1, 0]"
+            , "  (top [0, 0] - [0, 4]"
+            , "    (c [0, 0] - [0, 4]"
+            , "      (mkC [0, 2] - [0, 3]))))"
+            ]
+        it c_two $ do
+          output <- runParseTreeSitter (path c_two)
+          output `shouldBe` unlines
+            [ "(source_file [0, 0] - [1, 0]"
+            , "  (top [0, 0] - [0, 7]"
+            , "    (c [0, 0] - [0, 7]"
+            , "      (mkC [0, 2] - [0, 3])"
+            , "      (mkC [0, 5] - [0, 6]))))"
             ]
     describe "precedence" $ do
       let path x = "../samples/precedence/" <> x

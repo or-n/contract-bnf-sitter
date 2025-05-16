@@ -1,7 +1,7 @@
 module Translate where
 
 import Control.Monad (join, when)
-import Data.List (groupBy, group, find, partition)
+import Data.List (groupBy, group, find, partition, isPrefixOf)
 import Data.Function (on)
 import Data.Maybe (isJust)
 import Util (lowerFirst)
@@ -36,11 +36,10 @@ translate grammar = do
   let (constDecls, rules) =
         consts
         . map (mapRuleExpression onExpr)
-        . filter (\rule -> ruleId rule /= TreeSitter.Id "_")
+        . filter (not . isIdSpecial . ruleId)
         . join
         $ [[sourceFile], map fst separators, terminators] <> catRules'
   pure $ mkGrammar "grammar" constDecls rules []
-
 
 substOptionalSeparator sepRule =
   let id' = ruleId sepRule
@@ -111,9 +110,18 @@ consts rules =
 translateRule = \case
   LBNF.Rule label cat items -> do
     items' <- mapM itemToExpression items
-    id' <- if labelIsWild label
-      then pure "_"
-      else labelToText label
+    id' <- case label of
+      LBNF.LabNoP LBNF.Wild -> pure "_"
+      LBNF.LabNoP LBNF.ListE -> do
+        id' <- catToText cat
+        pure $ "_ListE" <> id'
+      LBNF.LabNoP LBNF.ListCons -> do
+        id' <- catToText cat
+        pure $ "_ListCons" <> id'
+      LBNF.LabNoP LBNF.ListOne -> do
+        id' <- catToText cat
+        pure $ "_ListOne" <> id'
+      _ -> labelToText label
     let rule = TreeSitter.Rule (TreeSitter.Id id') (toSeq items')
     pure (cat, rule)
   _ -> undefined
@@ -132,14 +140,20 @@ ruleId (TreeSitter.Rule id' _) = id'
 
 ruleExpression (TreeSitter.Rule _ expression) = expression
 
+isIdSpecial (TreeSitter.Id id') =
+  "_" == id' ||
+  "_ListE" `isPrefixOf` id' ||
+  "_ListCons" `isPrefixOf` id' ||
+  "_ListOne" `isPrefixOf` id'
+
 pushChoiceRule xs = do
   let cat = fst (head xs)
       rules = map snd xs
-      (wildRules, notWildRules) = partition ((== TreeSitter.Id "_") . ruleId) rules
-      symbols = map (TreeSitter.Symbol . ruleId) notWildRules
-      wild = map ruleExpression wildRules
+      (specialRules, notSpecialRules) = partition (isIdSpecial . ruleId) rules
+      symbols = map (TreeSitter.Symbol . ruleId) notSpecialRules
+      special = map ruleExpression specialRules
   id' <- catToId cat
-  let rule = TreeSitter.Rule id' $ toChoice $ symbols <> wild
+  let rule = TreeSitter.Rule id' $ toChoice $ symbols <> special
   pure (rule : rules)
 
 toChoice = \case
@@ -203,10 +217,6 @@ catToText = \case
 labelToText = \case
   LBNF.LabNoP labelId -> fmap lowerFirst . guardNotKeyword $ labelIdToText labelId
   _ -> undefined
-
-labelIsWild = \case
-  LBNF.LabNoP LBNF.Wild -> True
-  _ -> False
 
 labelIdToText = \case
   LBNF.Id id' -> ident id'
