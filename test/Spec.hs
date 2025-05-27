@@ -5,7 +5,6 @@ import System.Process (callProcess, readProcess)
 import System.Directory
 import Control.DeepSeq(deepseq)
 import Data.List (isPrefixOf)
-import Text.Read (readMaybe)
 
 import GenLBNF
 import qualified Data.Text as T

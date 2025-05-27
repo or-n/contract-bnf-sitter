@@ -30,11 +30,6 @@ library
     PrintTreeSitter
     SkelTreeSitter
     LexTreeSitter
-    AbsRustRegex
-    ParRustRegex
-    PrintRustRegex
-    SkelRustRegex
-    LexRustRegex
     Util
   build-depends:
     base,
