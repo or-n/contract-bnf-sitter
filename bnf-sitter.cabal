@@ -38,7 +38,8 @@ library
     Util
   build-depends:
     base,
-    array
+    array,
+    containers
   hs-source-dirs:
     app,
     LBNF,
@@ -67,7 +68,8 @@ executable bnf-sitter
   build-depends:
     base >=4.18.2.1,
     array,
-    bnf-sitter
+    bnf-sitter,
+    containers
   hs-source-dirs:
     app,
     LBNF,

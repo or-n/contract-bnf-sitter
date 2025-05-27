@@ -1,9 +1,9 @@
 module Translate where
 
 import Control.Monad (join, when)
-import Data.List (groupBy, group, find, partition, isPrefixOf)
-import Data.Function (on)
+import Data.List (find, partition, isPrefixOf)
 import Data.Maybe (isJust)
+import qualified Data.Map.Strict as Map
 import Util (lowerFirst)
 
 import qualified AbsLBNF as LBNF
@@ -28,7 +28,8 @@ translate grammar = do
   separators <- mapM translateSeparator $ filter isSeparator defs
   terminators <- mapM translateTerminator $ filter isTerminator defs
   catRules <- mapM translateRule rulesLBNF
-  let ruleGroups = groupBy ((==) `on` fst) catRules
+  let ruleGroups = Map.toList $ Map.fromListWith (<>)
+        $ map (\(a, b) -> (a, [b])) catRules
   catRules' <- mapM pushChoiceRule ruleGroups
   entrypoints <- case filter isEntryp defs of
     [LBNF.Entryp idents] -> mapM (catToId . LBNF.IdCat) idents
@@ -102,12 +103,14 @@ regex x = TreeSitter.Regex . TreeSitter.RegEx $ "/" <> x <> "/"
 consts rules =
   let
     constId i = TreeSitter.Id ("c" <> show i)
+    shouldMkConst :: (String, Int) -> Bool
     shouldMkConst (literal, count) = length literal > 3 && count >= 2
     literalGroups = map (\(i, (literal, _count)) -> (constId i, literal)) 
       $ zip [(0 :: Int)..]
       $ filter shouldMkConst
-      $ map (\xs -> (head xs, length xs))
-      $ group
+      $ Map.toList
+      $ Map.fromListWith (+)
+      $ map (\x -> (x, 1))
       $ concatMap (collectLiterals . ruleExpression)
       $ rules
     substLiteralId (id', literal) = substLiteral literal (TreeSitter.Const id')
@@ -155,10 +158,8 @@ isIdSpecial (TreeSitter.Id id') =
   "_ListCons" `isPrefixOf` id' ||
   "_ListOne" `isPrefixOf` id'
 
-pushChoiceRule xs = do
-  let cat = fst (head xs)
-      rules = map snd xs
-      (specialRules, notSpecialRules) = partition (isIdSpecial . ruleId) rules
+pushChoiceRule (cat, rules) = do
+  let (specialRules, notSpecialRules) = partition (isIdSpecial . ruleId) rules
       symbols = map (TreeSitter.Symbol . ruleId) notSpecialRules
       special = map ruleExpression specialRules
   id' <- catToId cat

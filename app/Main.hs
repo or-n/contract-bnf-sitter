@@ -10,10 +10,6 @@ import qualified AbsTreeSitter as TreeSitter
 import qualified ParTreeSitter as TreeSitter
 import qualified PrintTreeSitter as TreeSitter
 
--- import qualified AbsRustRegex as RustRegex
--- import qualified ParRustRegex as RustRegex
--- import qualified PrintRustRegex as RustRegex
-
 import Translate
 
 main = go "entrypoints" LBNF

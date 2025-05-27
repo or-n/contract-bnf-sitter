@@ -5,6 +5,7 @@ import System.Process (callProcess, readProcess)
 import System.Directory
 import Control.DeepSeq(deepseq)
 import Data.List (isPrefixOf)
+import Text.Read (readMaybe)
 
 import GenLBNF
 import qualified Data.Text as T
@@ -150,7 +151,7 @@ main = hspec $ do
           let input = "Char " <> wrap [apostrophe] x
           writeFile "input" input
           output <- runParseLBNF "TestPredefined" "input"
-          let unquote = tail . init
+          let unquote = init . drop 1
           let fixChar = \case
                 "\\\\" -> "\\\\"
                 "\\\'" -> "\\\'"
