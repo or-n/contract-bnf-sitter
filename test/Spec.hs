@@ -290,3 +290,21 @@ main = hspec $ do
               , "          (number [0, 4] - [0, 5])"
               , "          (number [0, 8] - [0, 9]))))))"
               ]
+  describe "entrypoints" $ do
+    let
+      path x = "../samples/entrypoints/" <> x
+      a = "a" -- pA is used by default in TestEntrypoints.hs
+    beforeAll (genLBNF "samples/LBNF/entrypoints.cf")
+      $ afterAll_ rm
+      $ describe "LBNF" $ do
+          let file = fileLBNF "TestEntrypoints" path
+          file a "A" "A"
+    beforeAll (genTreeSitter "samples/TreeSitter/entrypoints.js")
+      $ afterAll_ rm
+      $ describe "TreeSitter" $ do
+        it a $ do
+          output <- runParseTreeSitter (path a)
+          output `shouldBe` unlines
+            [ "(source_file [0, 0] - [1, 0]"
+            , "  (a [0, 0] - [0, 1]))"
+            ]

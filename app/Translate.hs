@@ -11,6 +11,8 @@ import qualified AbsTreeSitter as TreeSitter
 
 data TranslationError
   = Keyword String
+  | NoRules
+  | EntrypointsDefinedMoreThanOnce
   deriving Show
 
 mkGrammar name constDecls rules inlines =
@@ -28,8 +30,14 @@ translate grammar = do
   catRules <- mapM translateRule rulesLBNF
   let ruleGroups = groupBy ((==) `on` fst) catRules
   catRules' <- mapM pushChoiceRule ruleGroups
-  let top = TreeSitter.Symbol (TreeSitter.Id "top")
-  let sourceFile = TreeSitter.Rule (TreeSitter.Id "source_file") top
+  entrypoints <- case filter isEntryp defs of
+    [LBNF.Entryp idents] -> mapM (catToId . LBNF.IdCat) idents
+    [] -> case catRules of
+      (first, _) : _ -> mapM catToId [first]
+      _ -> Left NoRules
+    _ -> Left EntrypointsDefinedMoreThanOnce
+  let entrypoint = toChoice $ map TreeSitter.Symbol entrypoints
+  let sourceFile = TreeSitter.Rule (TreeSitter.Id "source_file") entrypoint
   let optionalSeparators = map fst $ filter snd separators
   let onExpr expr = substPredefined
         $ foldr substOptionalSeparator expr optionalSeparators
@@ -81,6 +89,7 @@ mapRuleExpression f (TreeSitter.Rule id' expr) = TreeSitter.Rule id' (f expr)
 isRule = \case LBNF.Rule _ _ _ -> True; _ -> False
 isSeparator = \case LBNF.Separator _ _ _ -> True; _ -> False
 isTerminator = \case LBNF.Terminator _ _ _ -> True; _ -> False
+isEntryp = \case LBNF.Entryp _ -> True; _ -> False
 
 substPredefined = substSymbol (TreeSitter.Id "_integer") (regex "[0-9]+")
   . substSymbol (TreeSitter.Id "_double") (regex "[0-9]+\\.[0-9]+(e-?[0-9]+)?")
@@ -161,7 +170,7 @@ toChoice = \case
   xs -> TreeSitter.Choice xs
 
 keywordsLBNF =
-  [ "Ident"
+  [ "ident"
   , "char"
   , "coertions"
   , "comment"
@@ -209,7 +218,7 @@ catToId = fmap TreeSitter.Id . catToText
 catToText = \case
   LBNF.ListCat cat -> ("_list" <>) <$> catToText cat
   LBNF.IdCat id' -> do
-    text <- guardNotKeyword . lowerFirst $ ident id'
+    text <- fmap lowerFirst . guardNotKeyword $ ident id'
     if text == "top"
       then pure text
       else pure $ "_" <> text
