@@ -67,13 +67,14 @@ import LexTreeSitter
   'inline'   { PT _ (TS _ 16)    }
   'module'   { PT _ (TS _ 17)    }
   'name'     { PT _ (TS _ 18)    }
-  'optional' { PT _ (TS _ 19)    }
-  'repeat'   { PT _ (TS _ 20)    }
-  'repeat1'  { PT _ (TS _ 21)    }
-  'rules'    { PT _ (TS _ 22)    }
-  'seq'      { PT _ (TS _ 23)    }
-  '{'        { PT _ (TS _ 24)    }
-  '}'        { PT _ (TS _ 25)    }
+  'null'     { PT _ (TS _ 19)    }
+  'optional' { PT _ (TS _ 20)    }
+  'repeat'   { PT _ (TS _ 21)    }
+  'repeat1'  { PT _ (TS _ 22)    }
+  'rules'    { PT _ (TS _ 23)    }
+  'seq'      { PT _ (TS _ 24)    }
+  '{'        { PT _ (TS _ 25)    }
+  '}'        { PT _ (TS _ 26)    }
   L_quoted   { PT _ (TL $$)      }
   L_Id       { PT _ (T_Id $$)    }
   L_RegEx    { PT _ (T_RegEx $$) }
@@ -141,6 +142,7 @@ Expression
   | Id { AbsTreeSitter.Const $1 }
   | String { AbsTreeSitter.Literal $1 }
   | RegEx { AbsTreeSitter.Regex $1 }
+  | 'null' { AbsTreeSitter.Null }
 
 ListExpression :: { [AbsTreeSitter.Expression] }
 ListExpression

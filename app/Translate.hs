@@ -2,7 +2,8 @@ module Translate where
 
 import Control.Monad (join, when)
 import Data.List (find, partition, isPrefixOf)
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, catMaybes)
+import Data.Either (rights)
 import qualified Data.Map.Strict as Map
 import Util (lowerFirst)
 
@@ -15,40 +16,44 @@ data TranslationError
   | EntrypointsDefinedMoreThanOnce
   deriving Show
 
-mkGrammar name constDecls rules inlines =
-  TreeSitter.Grammar (TreeSitter.Preamble constDecls)
-    $ TreeSitter.GrammarBody
-        (TreeSitter.Name name)
-        (TreeSitter.Rules rules)
-        (TreeSitter.Inlines inlines)
+mkGrammar constDecls = TreeSitter.Grammar (TreeSitter.Preamble constDecls)
 
-translate grammar = do
-  let defs = definitions grammar
-      rulesLBNF = filter isRule defs
-  separators <- mapM translateSeparator $ filter isSeparator defs
+mkBody name rules inlines = TreeSitter.GrammarBody
+  (TreeSitter.Name name)
+  (TreeSitter.Rules rules)
+  (TreeSitter.Inlines inlines)
+
+translate (LBNF.MkGrammar defs) = do
+  (separators, substOptionalSeparators) <- separatorRules defs
   terminators <- mapM translateTerminator $ filter isTerminator defs
-  catRules <- mapM translateRule rulesLBNF
-  let ruleGroups = Map.toList $ Map.fromListWith (<>)
-        $ map (\(a, b) -> (a, [b])) catRules
-  catRules' <- mapM pushChoiceRule ruleGroups
-  entrypoints <- case filter isEntryp defs of
-    [LBNF.Entryp idents] -> mapM (catToId . LBNF.IdCat) idents
-    [] -> case catRules of
-      (first, _) : _ -> mapM catToId [first]
-      _ -> Left NoRules
-    _ -> Left EntrypointsDefinedMoreThanOnce
-  let entrypoint = toChoice $ map TreeSitter.Symbol entrypoints
-  let sourceFile = TreeSitter.Rule (TreeSitter.Id "source_file") entrypoint
-  let optionalSeparators = map fst $ filter snd separators
-  let onExpr expr = substPredefined
-        $ foldr substOptionalSeparator expr optionalSeparators
-  let (constDecls, rules) =
-        consts
-        . map (mapRuleExpression onExpr)
+  catRules <- mapM translateRule $ filter isRule defs
+  let catRules' = rights
+        $ map (\(cat, rule) -> do x <- rule; Right (cat, x)) catRules
+  ruleGroups <- mapM pushChoiceRule $ Map.toList $ Map.fromListWith (<>)
+    $ map (\(a, b) -> (a, [b])) catRules'
+  sourceFile <- entrypointRule defs catRules'
+  let (constDecls, rules) = consts
+        . map (mapRuleExpression (substPredefined . substOptionalSeparators))
         . filter (not . isIdSpecial . ruleId)
         . join
-        $ [[sourceFile], map fst separators, terminators] <> catRules'
-  pure $ mkGrammar "grammar" constDecls rules []
+        $ [[sourceFile], separators, terminators] <> ruleGroups
+  pure $ mkGrammar constDecls $ mkBody "grammar" rules []
+
+separatorRules defs = do
+  separators <- mapM translateSeparator $ filter isSeparator defs
+  let substOptional =
+        flip (foldr substOptionalSeparator) (map fst $ filter snd separators)
+  pure (map fst separators, substOptional)
+
+entrypointRule defs catRules = do
+    entrypoints <- case filter isEntryp defs of
+      [LBNF.Entryp idents] -> mapM (catToId . LBNF.IdCat) idents
+      [] -> case catRules of
+        (first, _) : _ -> mapM catToId [first]
+        _ -> Left NoRules
+      _ -> Left EntrypointsDefinedMoreThanOnce
+    pure $ TreeSitter.Rule (TreeSitter.Id "source_file")
+      $ toChoice $ map TreeSitter.Symbol entrypoints
 
 substOptionalSeparator sepRule =
   let id' = ruleId sepRule
@@ -122,7 +127,7 @@ consts rules =
 translateRule = \case
   LBNF.Rule label cat items -> do
     items' <- mapM itemToExpression items
-    id' <- case label of
+    id' <- TreeSitter.Id <$> case label of
       LBNF.LabNoP LBNF.Wild -> pure "_"
       LBNF.LabNoP LBNF.ListE -> do
         id' <- catToText cat
@@ -134,15 +139,18 @@ translateRule = \case
         id' <- catToText cat
         pure $ "_ListOne" <> id'
       _ -> labelToText label
-    let rule = TreeSitter.Rule (TreeSitter.Id id') (toSeq items')
-    pure (cat, rule)
+    case toSeq items' of
+      Just seq -> do 
+        let rule = TreeSitter.Rule id' seq
+        pure (cat, Right rule)
+      _ ->
+        pure (cat, Left (TreeSitter.Symbol id'))
   _ -> undefined
 
-definitions (LBNF.MkGrammar defs) = defs
-
 toSeq = \case
-  [x] -> x
-  xs -> TreeSitter.Seq xs
+  [] -> Nothing
+  [x] -> Just x
+  xs -> Just $ TreeSitter.Seq xs
 
 itemToExpression = \case
   LBNF.Terminal text -> pure $ TreeSitter.Literal text
@@ -169,6 +177,12 @@ pushChoiceRule (cat, rules) = do
 toChoice = \case
   [x] -> x
   xs -> TreeSitter.Choice xs
+
+isOptional = \case
+  TreeSitter.Null -> True
+  TreeSitter.Seq [] -> True
+  TreeSitter.Optional _ -> True
+  TreeSitter.Choice xs -> any isOptional xs
 
 keywordsLBNF =
   [ "ident"

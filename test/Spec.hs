@@ -3,6 +3,8 @@ import Test.QuickCheck
 
 import System.Process (callProcess, readProcess)
 import System.Directory
+import System.Exit (ExitCode(..))
+import System.Posix.Process (exitImmediately)
 import Control.DeepSeq(deepseq)
 import Data.List (isPrefixOf)
 
@@ -27,8 +29,8 @@ genTreeSitter path = do
   setCurrentDirectory tmp
   runGenerateTreeSitter
 
-alex = "/nix/store/bbm48ma0dh22vbawwhj1g9nqkxbbrbc1-alex-3.4.0.1/bin/alex"
-happy = "/nix/store/n4899xhj40gddjam6g5bfmy0dl4jbm9a-happy-1.20.1.1/bin/happy"
+alex = "/nix/store/96dnrr5bk09707rlf66gqqxqh8ql7gal-alex-3.5.3.0/bin/alex"
+happy = "/nix/store/9gsvxfm9y6riwv7l09bs410nlcch8wg2-happy-2.0.2/bin/happy"
 
 patchMakefile = do
   content <- readFile "Makefile"
@@ -193,9 +195,9 @@ main = hspec $ do
       abc = "abc"
       empty = "empty"
       terminator_abc = "terminator_abc"
-      c_zero = "c_zero"
       c_one = "c_one"
       c_two = "c_two"
+      d_zero = "d_zero"
     beforeAll (genLBNF "samples/LBNF/sep.cf")
       $ afterAll_ rm
       $ describe "LBNF" $ do
@@ -206,18 +208,18 @@ main = hspec $ do
         file empty
           "A []"
           "A"
-        file terminator_abc 
-          "B [MkB (Ident \"a\"),MkB (Ident \"b\"),MkB (Ident \"c\")]"
-          "B a, b, c,"
-        -- file c_zero
-        --   "C []"
-        --   "C"
         file c_one
           "C [MkC (Ident \"a\")]"
           "C a;"
         file c_two
           "C [MkC (Ident \"a\"),MkC (Ident \"b\")]"
           "C a;\nb;"
+        file terminator_abc 
+          "B [MkB (Ident \"a\"),MkB (Ident \"b\"),MkB (Ident \"c\")]"
+          "B a, b, c,"
+        -- file d_zero
+        --   "D []"
+        --   "D"
     beforeAll (genTreeSitter "samples/TreeSitter/sep.js")
       $ afterAll_ rm
       $ describe "TreeSitter" $ do
@@ -265,6 +267,17 @@ main = hspec $ do
             , "      (mkC [0, 2] - [0, 3])"
             , "      (mkC [0, 5] - [0, 6]))))"
             ]
+        -- it d_zero $ do
+        --   output <- runParseTreeSitter (path d_zero)
+        --   output `shouldBe` unlines
+        --     [ "(source_file [0, 0] - [1, 0]"
+        --     , "  (top [0, 0] - [0, 7]"
+        --     , "    (d [0, 0] - [0, 7]"
+        --     , "      (mkD [0, 2] - [0, 3])"
+        --     , "      (mkD [0, 5] - [0, 6]))))"
+        --     ]
+        -- it "fails intentionally" $ do
+        --   exitImmediately (ExitFailure 1) :: IO ()
     describe "precedence" $ do
       let path x = "../samples/precedence/" <> x
       let a = "a"

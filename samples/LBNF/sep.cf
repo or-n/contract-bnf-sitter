@@ -1,6 +1,7 @@
 A. Top ::= "A" [A] ;
 B. Top ::= "B" [B] ;
 C. Top ::= "C" [C] ;
+D. Top ::= "D" [D] ;
 
 MkA. A ::= Ident ;
 separator A "," ;
@@ -11,3 +12,7 @@ terminator B "," ;
 MkC. C ::= Ident ;
 (:[]). [C] ::= C ";" ;
 (:). [C] ::= C ";" [C] ;
+
+MkD. D ::= Ident ;
+[]. [D] ::= ;
+(:). [D] ::= D "*" [D] ; 

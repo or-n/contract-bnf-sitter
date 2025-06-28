@@ -200,6 +200,7 @@ instance Print AbsTreeSitter.Expression where
     AbsTreeSitter.Const id_ -> prPrec i 0 (concatD [prt 0 id_])
     AbsTreeSitter.Literal str -> prPrec i 0 (concatD [printString str])
     AbsTreeSitter.Regex regex -> prPrec i 0 (concatD [prt 0 regex])
+    AbsTreeSitter.Null -> prPrec i 0 (concatD [doc (showString "null")])
 
 instance Print [AbsTreeSitter.Expression] where
   prt _ [] = concatD []

@@ -70,3 +70,4 @@ transExpression x = case x of
   AbsTreeSitter.Const id -> failure x
   AbsTreeSitter.Literal string -> failure x
   AbsTreeSitter.Regex regex -> failure x
+  AbsTreeSitter.Null -> failure x

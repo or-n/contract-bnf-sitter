@@ -30,6 +30,7 @@ Symbol. Expression ::= "$" "." Id ;
 Const. Expression ::= Id ;
 Literal. Expression ::= String ;
 Regex. Expression ::= RegEx ;
+Null. Expression ::= "null" ;
 separator Expression "," ;
 
 token Id ((letter | '_') (letter | digit | '_')*) ;
